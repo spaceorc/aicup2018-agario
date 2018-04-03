@@ -23,9 +23,9 @@ namespace Game.Types
 				fuse_timer = config.TICKS_TIL_FUSION;
 		}
 
-		protected override string IdToString()
+		public override string IdToString()
 		{
-			return $"{id}.{fragmentId}";
+			return fragmentId == 0 ? id.ToString() : $"{id}.{fragmentId}";
 		}
 
 		public Point GetDirectNorm()

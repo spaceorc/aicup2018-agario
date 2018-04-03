@@ -1,5 +1,4 @@
 ﻿using Game.Protocol;
-using Newtonsoft.Json.Linq;
 
 namespace Game.Types
 {
@@ -32,7 +31,7 @@ namespace Game.Types
 			return qdist < dr * dr;
 		}
 
-		protected virtual string IdToString() => id.ToString();
+		public virtual string IdToString() => id.ToString();
 
 		public override string ToString()
 		{

@@ -1,52 +1,79 @@
-﻿using Game.Protocol;
-using Newtonsoft.Json.Linq;
+﻿using System;
+using Game.Protocol;
+using Game.Sim;
+using Game.Types;
 
 namespace Game
 {
 	public class Strategy
 	{
+		private readonly Config config;
+		private readonly SimState state;
+		private Point globalTarget;
+		private bool globalTargetObsolete;
+		private Random random;
+
 		public Strategy(Config config)
 		{
+			this.config = config;
+			state = new SimState(config);
+			random = new Random();
 		}
 
 		public TurnOutput OnTick(TurnInput turnInput)
 		{
-			var mine = turnInput.Mine;
-			var result = new TurnOutput();
-			if (mine.Length > 0)
+			state.Apply(turnInput);
+			var minDist = double.PositiveInfinity;
+			Point target = null;
+			foreach (var player in state.players[state.myId])
 			{
-				var objects = turnInput.Objects;
-				var food = FindFood(objects);
-				if (food != null)
-				{
-					result.X = food.X;
-					result.Y = food.Y;
-				}
-				else
-				{
-					result.X = 0;
-					result.Y = 0;
-					result.Debug = "No food";
-				}
-			}
-			else
-			{
-				result.X = 0;
-				result.Y = 0;
-				result.Debug = "Died";
-			}
-			return result;
-		}
+				if (!globalTargetObsolete && globalTarget != null && player.Value.item.Distance(globalTarget) < 4 * player.Value.item.radius)
+					globalTargetObsolete = true;
 
-		private static TurnInput.ObjectData FindFood(TurnInput.ObjectData[] objects)
-		{
-			foreach (var obj in objects)
-			{
-				var type = obj.T;
-				if (type.Equals("F"))
-					return obj;
+				foreach (var food in state.foods)
+				{
+					var qdist = player.Value.item.QDistance(food.Value.item);
+					if (qdist < minDist)
+					{
+						minDist = qdist;
+						target = food.Value.item;
+					}
+				}
 			}
-			return null;
+
+			if (target == null)
+			{
+				if (globalTarget == null)
+				{
+					globalTarget = new Point(
+						config.GAME_WIDTH / 10 + random.NextDouble() * config.GAME_WIDTH * 8 / 10,
+						config.GAME_HEIGHT / 10 + random.NextDouble() * config.GAME_HEIGHT * 8 / 10);
+				}
+				else if (globalTargetObsolete)
+				{
+					globalTargetObsolete = false;
+					var minDiffQDist = (config.GAME_WIDTH * config.GAME_WIDTH + config.GAME_HEIGHT * config.GAME_HEIGHT) * 0.09;
+					while (true)
+					{
+						var nextGlobalTarget = new Point(
+							config.GAME_WIDTH / 10 + random.NextDouble() * config.GAME_WIDTH * 8 / 10,
+							config.GAME_HEIGHT / 10 + random.NextDouble() * config.GAME_HEIGHT * 8 / 10);
+						if (nextGlobalTarget.QDistance(globalTarget) > minDiffQDist)
+						{
+							globalTarget = nextGlobalTarget;
+							break;
+						}
+					}
+				}
+				target = globalTarget;
+			}
+
+			return new TurnOutput
+			{
+				X = target.x,
+				Y = target.y,
+				Debug = globalTarget?.ToString() ?? $"Food : {target}"
+			};
 		}
 	}
 }
