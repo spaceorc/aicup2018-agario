@@ -17,7 +17,7 @@ namespace Game
 		static Logger()
 		{
 #if LOGGING
-			logFile = Path.Combine(FileHelper.PatchDirectoryName("logs"), "log.txt");
+			logFile = Path.Combine(FileHelper.PatchDirectoryName("logs"), $"log{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.txt");
 #endif
 		}
 

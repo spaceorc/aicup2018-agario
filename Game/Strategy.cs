@@ -1,51 +1,50 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Game.Protocol;
+using Newtonsoft.Json.Linq;
 
 namespace Game
 {
 	public class Strategy
 	{
-		public Strategy(JObject config)
+		public Strategy(Config config)
 		{
 		}
 
-		public JObject OnTick(JObject parsed)
+		public TurnOutput OnTick(TurnInput turnInput)
 		{
-			var mine = (JArray)parsed.GetValue("Mine");
-			var result = new JObject();
-			if (mine.Count > 0)
+			var mine = turnInput.Mine;
+			var result = new TurnOutput();
+			if (mine.Length > 0)
 			{
-				var objects = (JArray)parsed.GetValue("Objects");
+				var objects = turnInput.Objects;
 				var food = FindFood(objects);
 				if (food != null)
 				{
-					result["X"] = food.GetValue("X");
-					result["Y"] = food.GetValue("Y");
+					result.X = food.X;
+					result.Y = food.Y;
 				}
 				else
 				{
-					result["X"] = 0;
-					result["Y"] = 0;
-					result["Debug"] = "No food";
+					result.X = 0;
+					result.Y = 0;
+					result.Debug = "No food";
 				}
 			}
 			else
 			{
-				result["X"] = 0;
-				result["Y"] = 0;
-				result["Debug"] = "Died";
+				result.X = 0;
+				result.Y = 0;
+				result.Debug = "Died";
 			}
 			return result;
 		}
 
-		private static JObject FindFood(JArray objects)
+		private static TurnInput.ObjectData FindFood(TurnInput.ObjectData[] objects)
 		{
-			foreach (JObject obj in objects)
+			foreach (var obj in objects)
 			{
-				var type = (string)obj.GetValue("T");
+				var type = obj.T;
 				if (type.Equals("F"))
-				{
 					return obj;
-				}
 			}
 			return null;
 		}

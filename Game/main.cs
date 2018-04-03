@@ -1,6 +1,6 @@
 ﻿using System;
+using Game.Protocol;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Game
 {
@@ -12,19 +12,18 @@ namespace Game
 				(sender, eventArgs) => Logger.Error((Exception)eventArgs.ExceptionObject);
 			Logger.Info("Waiting for config...");
 
-			var config = FixedConsole.ReadLine();
-			Logger.Info($"Config: {config}");
+			var config = ConsoleProtocol.ReadConfig();
+			Logger.Info($"Config: {JsonConvert.SerializeObject(config)}");
 
-			var strategy = new Strategy(JObject.Parse(config));
+			var strategy = new Strategy(config);
 			while (true)
 			{
 				Logger.Info("Waiting for data...");
-				var data = FixedConsole.ReadLine();
-				Logger.Info($"Data: {data}");
-				var parsed = JObject.Parse(data);
-				var command = strategy.OnTick(parsed).ToString(Formatting.None);
-				Logger.Info($"Command: {command}");
-				Console.WriteLine(command);
+				var data = ConsoleProtocol.ReadTurnInput();
+				Logger.Info($"Data: {JsonConvert.SerializeObject(data)}");
+				var command = strategy.OnTick(data);
+				Logger.Info($"Command: {JsonConvert.SerializeObject(command)}");
+				ConsoleProtocol.WriteTurnInput(command);
 			}
 		}
 	}
