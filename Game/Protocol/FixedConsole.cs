@@ -7,7 +7,7 @@ namespace Game.Protocol
 {
 	public static class FixedConsole
 	{
-#if !__MonoCS__
+#if LOCAL_RUNNER
 		[DllImport("kernel32.dll", SetLastError = true)]
 		private static extern IntPtr GetStdHandle(int nStdHandle);
 		private static readonly StreamReader inputStreamReader;
@@ -24,10 +24,11 @@ namespace Game.Protocol
 
 		public static string ReadLine()
 		{
-#if __MonoCS__
-			return Console.ReadLine();
-#else
+#if LOCAL_RUNNER
 			return inputStreamReader.ReadLine();
+	
+#else
+			return Console.ReadLine();
 #endif
 		}
 	}
