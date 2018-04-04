@@ -13,7 +13,6 @@ namespace Game.Types
 		public int score;
 		public int fragmentId;
 		public double visionRadius;
-		public Point cmd;
 
 		public Player(int id, double x, double y, double radius, double mass, int fId, Config config)
 			: base(id, x, y, radius, mass, config)
@@ -26,18 +25,6 @@ namespace Game.Types
 		public override string IdToString()
 		{
 			return fragmentId == 0 ? id.ToString() : $"{id}.{fragmentId}";
-		}
-
-		public Point GetDirectNorm()
-		{
-			double dx = cmd.x - x, dy = cmd.y - y;
-			var dist = Distance(cmd);
-			if (dist > 0)
-			{
-				var factor = 50 / dist;
-				return new Point(x + dx * factor, y + dy * factor);
-			}
-			return new Point(this);
 		}
 
 		public void SetImpulse(double speed, double angle)
@@ -362,7 +349,6 @@ namespace Game.Types
 		public void ApplyDirect(Direct direct)
 		{
 			direct.Limit();
-			cmd = new Point(direct);
 			if (isFast) return;
 
 			double speed_x = speed * Math.Cos(angle);

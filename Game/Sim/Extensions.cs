@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Game.Types;
 
 namespace Game.Sim
 {
@@ -21,6 +22,11 @@ namespace Game.Sim
 		public static void Remove<TKey, T>(this Dictionary<TKey, T> dct, KeyValuePair<TKey, T> kvp)
 		{
 			((ICollection<KeyValuePair<TKey, T>>) dct).Remove(kvp);
+		}
+
+		public static T Clone<T>(this T circle) where T : Circle
+		{
+			return (T)circle.MemberwiseClone();
 		}
 	}
 }

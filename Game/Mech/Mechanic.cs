@@ -290,7 +290,6 @@ namespace Game.Mech
 					player.BurstOn(virus);
 					var fragments = player.BurstNow(max_fId, yet_cnt);
 					players.AddRange(fragments);
-					players.Remove(player);
 
 					viruses.Remove(virus);
 				}

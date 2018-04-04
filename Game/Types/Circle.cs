@@ -37,5 +37,10 @@ namespace Game.Types
 		{
 			return $"{IdToString()} [{GetType().Name}] {base.ToString()}, {nameof(radius)}: {radius}, {nameof(mass)}: {mass}";
 		}
+
+		public new Circle MemberwiseClone()
+		{
+			return (Circle) base.MemberwiseClone();
+		}
 	}
 }
