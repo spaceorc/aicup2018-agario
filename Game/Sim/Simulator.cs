@@ -51,7 +51,7 @@ namespace Game.Sim
 			};
 		}
 
-		public void Tick(Direct[] directs)
+		public void Tick(params Direct[] directs)
 		{
 			ApplyDirects(directs);
 			MoveMoveables();

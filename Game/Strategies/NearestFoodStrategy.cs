@@ -1,28 +1,21 @@
 ﻿using System;
 using System.Linq;
 using Game.Protocol;
-using Game.Sim;
 using Game.Types;
 
 namespace Game.Strategies
 {
-	public class NearestFoodStrategy : IStrategy
+	public class NearestFoodStrategy : StateStrategyBase
 	{
-		private readonly Config config;
 		private readonly bool fixSpeed;
 		private readonly bool split;
-		private readonly SimState state;
 		private Point globalTarget;
 		private bool globalTargetObsolete;
-		private readonly Random random;
 
-		public NearestFoodStrategy(Config config, bool split = false, bool fixSpeed = false)
+		public NearestFoodStrategy(Config config, bool split = false, bool fixSpeed = false) : base(config)
 		{
-			this.config = config;
 			this.fixSpeed = fixSpeed;
 			this.split = split;
-			state = new SimState(config);
-			random = new Random();
 		}
 
 		public static void Register()
@@ -33,9 +26,8 @@ namespace Game.Strategies
 			StrategiesRegistry.Register("NearestFood_Split_FixSpeed", c => new NearestFoodStrategy(c, split: true, fixSpeed: true));
 		}
 
-		public TurnOutput OnTick(TurnInput turnInput)
+		protected override Direct GetDirect()
 		{
-			state.Apply(turnInput);
 			var minDist = double.PositiveInfinity;
 			Point target = null;
 			foreach (var frag in state.players[state.myId])
@@ -85,13 +77,10 @@ namespace Game.Strategies
 				}
 				target = globalTarget;
 			}
-			
-			return new TurnOutput
+
+			return new Direct(target, config, split && !state.players.Where(p => p.Key != state.myId).SelectMany(p => p.Value).Any() && random.Next(100) < 5)
 			{
-				X = target.x,
-				Y = target.y,
-				Split = split && !state.players.Where(p => p.Key != state.myId).SelectMany(p => p.Value).Any() && random.Next(100) < 5,
-				Debug = globalTarget?.ToString() ?? $"Food : {target}"
+				debug = globalTarget?.ToString() ?? $"Food : {target}"
 			};
 		}
 	}
