@@ -99,7 +99,7 @@ namespace Experiments
 
 						return new { bot, ps, score = ps.score.Mean };
 					})
-					.OrderByDescending(s => s.score)
+					.OrderByDescending(s => s.ps.percent)
 					.ToArray();
 				Console.SetCursorPosition(0, 0);
 				var statSep = $"+{Pad("-", nameMaxLength, '-')}+{Pad("-", 6, '-')}+{Pad("-", 6, '-')}+{Pad("-", 6, '-')}+{Pad("-", 10, '-')}+";

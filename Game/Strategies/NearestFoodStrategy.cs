@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Game.Protocol;
 using Game.Sim;
 using Game.Types;
@@ -9,24 +10,27 @@ namespace Game.Strategies
 	{
 		private readonly Config config;
 		private readonly bool fixSpeed;
+		private readonly bool split;
 		private readonly SimState state;
 		private Point globalTarget;
 		private bool globalTargetObsolete;
 		private readonly Random random;
 
-		public NearestFoodStrategy(Config config, bool fixSpeed)
+		public NearestFoodStrategy(Config config, bool split = false, bool fixSpeed = false)
 		{
 			this.config = config;
 			this.fixSpeed = fixSpeed;
+			this.split = split;
 			state = new SimState(config);
 			random = new Random();
 		}
 
 		public static void Register()
 		{
-			StrategiesRegistry.Register("NearestFood1", c => new NearestFoodStrategy(c, false));
-			StrategiesRegistry.Register("NearestFood2", c => new NearestFoodStrategy(c, false));
-			StrategiesRegistry.Register("NearestFood_Fixed", c => new NearestFoodStrategy(c, true));
+			StrategiesRegistry.Register("NearestFood", c => new NearestFoodStrategy(c));
+			StrategiesRegistry.Register("NearestFood_FixSpeed", c => new NearestFoodStrategy(c, fixSpeed: true));
+			StrategiesRegistry.Register("NearestFood_Split", c => new NearestFoodStrategy(c, split: true));
+			StrategiesRegistry.Register("NearestFood_Split_FixSpeed", c => new NearestFoodStrategy(c, split: true, fixSpeed: true));
 		}
 
 		public TurnOutput OnTick(TurnInput turnInput)
@@ -86,6 +90,7 @@ namespace Game.Strategies
 			{
 				X = target.x,
 				Y = target.y,
+				Split = split && !state.players.Where(p => p.Key != state.myId).SelectMany(p => p.Value).Any() && random.Next(100) < 5,
 				Debug = globalTarget?.ToString() ?? $"Food : {target}"
 			};
 		}
