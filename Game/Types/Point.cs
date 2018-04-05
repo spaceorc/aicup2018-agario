@@ -26,6 +26,14 @@ namespace Game.Types
 			return dx * dx + dy * dy;
 		}
 
+		public void Move(double angle, double length)
+		{
+			var dx = length * Math.Cos(angle);
+			var dy = length * Math.Sin(angle);
+			x += dx;
+			y += dy;
+		}
+
 		public override string ToString()
 		{
 			return $"{x},{y}";

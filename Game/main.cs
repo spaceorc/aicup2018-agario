@@ -15,7 +15,7 @@ namespace Game
 			var config = ConsoleProtocol.ReadConfig();
 			Logger.Info($"Config: {JsonConvert.SerializeObject(config)}");
 
-			var strategy = new Strategy(config);
+			var strategy = new NearestFoodStrategy(config, true);
 			while (true)
 			{
 				Logger.Info("Waiting for data...");

@@ -5,24 +5,19 @@ using Game.Types;
 
 namespace Game
 {
-	// pack: 0
-	public static class Settings
-	{
-		public const int FOOD_FORGET_TICKS = 20;
-		public const int ENEMY_FORGET_TICKS = 20;
-	}
-
-	public class Strategy
+	public class NearestFoodStrategy
 	{
 		private readonly Config config;
+		private readonly bool fixSpeed;
 		private readonly SimState state;
 		private Point globalTarget;
 		private bool globalTargetObsolete;
-		private Random random;
+		private readonly Random random;
 
-		public Strategy(Config config)
+		public NearestFoodStrategy(Config config, bool fixSpeed)
 		{
 			this.config = config;
+			this.fixSpeed = fixSpeed;
 			state = new SimState(config);
 			random = new Random();
 		}
@@ -32,18 +27,23 @@ namespace Game
 			state.Apply(turnInput);
 			var minDist = double.PositiveInfinity;
 			Point target = null;
-			foreach (var player in state.players[state.myId])
+			foreach (var frag in state.players[state.myId])
 			{
-				if (!globalTargetObsolete && globalTarget != null && player.Value.item.Distance(globalTarget) < 4 * player.Value.item.radius)
+				if (!globalTargetObsolete && globalTarget != null && frag.Value.item.Distance(globalTarget) < 4 * frag.Value.item.radius)
 					globalTargetObsolete = true;
 
 				foreach (var food in state.foods)
 				{
-					var qdist = player.Value.item.QDistance(food.Value.item);
+					var qdist = frag.Value.item.QDistance(food.Value.item);
 					if (qdist < minDist)
 					{
 						minDist = qdist;
 						target = food.Value.item;
+						if (fixSpeed)
+						{
+							target = new Point(target);
+							target.Move(frag.Value.item.angle + Math.PI, frag.Value.item.speed);
+						}
 					}
 				}
 			}
@@ -74,7 +74,7 @@ namespace Game
 				}
 				target = globalTarget;
 			}
-
+			
 			return new TurnOutput
 			{
 				X = target.x,
