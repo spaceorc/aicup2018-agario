@@ -3,9 +3,9 @@ using Game.Protocol;
 using Game.Sim;
 using Game.Types;
 
-namespace Game
+namespace Game.Strategies
 {
-	public class NearestFoodStrategy
+	public class NearestFoodStrategy : IStrategy
 	{
 		private readonly Config config;
 		private readonly bool fixSpeed;
@@ -20,6 +20,13 @@ namespace Game
 			this.fixSpeed = fixSpeed;
 			state = new SimState(config);
 			random = new Random();
+		}
+
+		public static void Register()
+		{
+			StrategiesRegistry.Register("NearestFood1", c => new NearestFoodStrategy(c, false));
+			StrategiesRegistry.Register("NearestFood2", c => new NearestFoodStrategy(c, false));
+			StrategiesRegistry.Register("NearestFood_Fixed", c => new NearestFoodStrategy(c, true));
 		}
 
 		public TurnOutput OnTick(TurnInput turnInput)

@@ -31,7 +31,6 @@ namespace Game.Mech
 			AddPlayer(Constants.START_PLAYER_SETS, strategies);
 			AddFood(Constants.START_FOOD_SETS);
 			AddVirus(Constants.START_VIRUS_SETS);
-
 		}
 
 		public void Play()

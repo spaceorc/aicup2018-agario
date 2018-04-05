@@ -1,8 +1,8 @@
 ﻿using Game.Protocol;
 
-namespace Game
+namespace Game.Strategies
 {
-	public class SimpleStrategy
+	public class SimpleStrategy : IStrategy
 	{
 		public SimpleStrategy(Config config)
 		{

@@ -82,7 +82,7 @@ namespace Game.Types
 			return changed;
 		}
 
-		public TurnInput.ObjectData ToObjectData()
+		public override TurnInput.ObjectData ToObjectData()
 		{
 			return new TurnInput.ObjectData
 			{

@@ -31,6 +31,8 @@ namespace Game.Types
 			return qdist < dr * dr;
 		}
 
+		public abstract TurnInput.ObjectData ToObjectData();
+
 		public virtual string IdToString() => id.ToString();
 
 		public override string ToString()

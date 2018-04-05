@@ -447,7 +447,7 @@ namespace Game.Types
 			radius = Constants.RADIUS_FACTOR * Math.Sqrt(mass);
 		}
 
-		public TurnInput.ObjectData ToObjectData()
+		public override TurnInput.ObjectData ToObjectData()
 		{
 			return new TurnInput.ObjectData
 			{

@@ -1,5 +1,6 @@
 ﻿using System;
 using Game.Protocol;
+using Game.Strategies;
 using Newtonsoft.Json;
 
 namespace Game
@@ -15,7 +16,7 @@ namespace Game
 			var config = ConsoleProtocol.ReadConfig();
 			Logger.Info($"Config: {JsonConvert.SerializeObject(config)}");
 
-			var strategy = new NearestFoodStrategy(config, true);
+			var strategy = StrategiesRegistry.Create(Settings.DefaultStrategy, config);
 			while (true)
 			{
 				Logger.Info("Waiting for data...");
