@@ -20,7 +20,7 @@ namespace Game.Sim
 			new List<Player>()
 		};
 		public int[] scores = new int[4];
-
+		
 		public Simulator()
 		{
 		}
@@ -34,7 +34,10 @@ namespace Game.Sim
 			players[0].AddRange(simState.players[simState.myId].Select(x => x.Value.item.Clone()));
 			var p = 1;
 			foreach (var kvp in simState.players.Where(x => x.Key != simState.myId))
-				players[p++].AddRange(kvp.Value.Select(x => x.Value.item.Clone()));
+			{
+				players[p].AddRange(kvp.Value.Select(x => x.Value.item.Clone()));
+				p++;
+			}
 		}
 
 		public Simulator Clone()
@@ -47,7 +50,7 @@ namespace Game.Sim
 				foods = foods.Select(x => x.Clone()).ToList(),
 				viruses = viruses.Select(x => x.Clone()).ToList(),
 				scores = scores.ToArray(),
-				players = players.Select(fragments => fragments.Select(f => f.Clone()).ToList()).ToArray()
+				players = players.Select(fragments => fragments.Select(f => f.Clone()).ToList()).ToArray(),
 			};
 		}
 
@@ -183,8 +186,9 @@ namespace Game.Sim
 				}
 			}
 
-			foreach (var fragments in players)
+			for (var pi = 0; pi < players.Length; pi++)
 			{
+				var fragments = players[pi];
 				for (var i = 0; i < fragments.Count;)
 				{
 					var frag = fragments[i];

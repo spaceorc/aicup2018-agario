@@ -7,27 +7,21 @@ using Game.Types;
 
 namespace Game.Strategies
 {
-	public class MonteCarloStrategy : StateStrategyBase
+	public class MonteCarloStrategy : SimulationStrategyBase
 	{
-		private Point globalTarget;
-
 		public MonteCarloStrategy(Config config) : base(config)
 		{
 		}
 
-		protected override Direct GetDirect()
+		protected override Direct GetDirect(Simulator sim)
 		{
-			var simulator = new Simulator(state);
-
-			PrepareGlobalTarget(simulator);
-
 			var bestEvaluation = double.NegativeInfinity;
 			Direct bestDirect = null;
 			var evaluations = 0;
 			var stopwatch = Stopwatch.StartNew();
 			while (stopwatch.ElapsedMilliseconds < 17)
 			{
-				var clone = simulator.Clone();
+				var clone = sim.Clone();
 				var total = 0;
 				Direct direct = null;
 				while (total < 50)
@@ -121,47 +115,5 @@ namespace Game.Strategies
 			return result;
 		}
 
-		private void PrepareGlobalTarget(Simulator sim)
-		{
-			var globalTargetReached = false;
-			if (globalTarget == null)
-				globalTargetReached = true;
-			else
-			{
-				foreach (var frag in sim.players[0])
-				{
-					if (frag.Distance(globalTarget) < 4 * frag.radius)
-					{
-						globalTargetReached = true;
-						break;
-					}
-				}
-			}
-
-			if (globalTargetReached)
-			{
-				if (globalTarget == null)
-				{
-					globalTarget = new Point(
-						config.GAME_WIDTH / 10 + random.NextDouble() * config.GAME_WIDTH * 8 / 10,
-						config.GAME_HEIGHT / 10 + random.NextDouble() * config.GAME_HEIGHT * 8 / 10);
-				}
-				else
-				{
-					var minDiffQDist = (config.GAME_WIDTH * config.GAME_WIDTH + config.GAME_HEIGHT * config.GAME_HEIGHT) * 0.09;
-					while (true)
-					{
-						var nextGlobalTarget = new Point(
-							config.GAME_WIDTH / 10 + random.NextDouble() * config.GAME_WIDTH * 8 / 10,
-							config.GAME_HEIGHT / 10 + random.NextDouble() * config.GAME_HEIGHT * 8 / 10);
-						if (nextGlobalTarget.QDistance(globalTarget) > minDiffQDist)
-						{
-							globalTarget = nextGlobalTarget;
-							break;
-						}
-					}
-				}
-			}
-		}
 	}
 }
