@@ -114,6 +114,5 @@ namespace Game.Strategies
 				          + 10.0 * (config.GAME_HEIGHT - Math.Sqrt(avgFoodQDist) / config.GAME_HEIGHT);
 			return result;
 		}
-
 	}
 }

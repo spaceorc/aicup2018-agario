@@ -24,7 +24,9 @@ namespace Game
 		[Conditional("LOGGING")]
 		public static void Log(Level level, string msg)
 		{
-			File.AppendAllText(logFile, $"{DateTime.Now:s} {level.ToString().ToUpper()} {msg}{Environment.NewLine}");
+			using (var fileStream = File.Open(logFile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite))
+			using (var w = new StreamWriter(fileStream))
+				w.WriteLine($"{DateTime.Now:s} {level.ToString().ToUpper()} {msg}");
 		}
 
 		[Conditional("LOGGING")]

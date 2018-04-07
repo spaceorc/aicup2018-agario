@@ -95,6 +95,7 @@ namespace Game.Types
 
 		public void Eat(Circle food, bool isLast = false)
 		{
+			food.removed = true;
 			mass += food.mass;
 			if (food is Ejection ejection && ejection.player == id)
 				return;
@@ -263,6 +264,7 @@ namespace Game.Types
 
 		public void Fusion(Player frag)
 		{
+			frag.removed = true;
 			double fragDX = frag.speed * Math.Cos(frag.angle);
 			double fragDY = frag.speed * Math.Sin(frag.angle);
 			double dX = speed * Math.Cos(angle);

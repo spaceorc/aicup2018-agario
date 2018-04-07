@@ -8,6 +8,7 @@ namespace Game.Types
 		public readonly Config config;
 		public double mass;
 		public double radius;
+		public bool removed;
 
 		public Circle(int id, double x, double y, double radius, double mass, Config config) : base(x, y)
 		{

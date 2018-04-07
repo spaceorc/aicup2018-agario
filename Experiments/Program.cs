@@ -20,7 +20,7 @@ namespace Experiments
 			var mechanic = new Mechanic(config, new List<PlayerStrategy>
 			{
 				new PlayerStrategy(config, c => new SimpleStrategy(c)),
-				new PlayerStrategy(config, c => new SimpleStrategy(c)),
+				new PlayerStrategy(config, c => new GAStrategy(c)),
 				new PlayerStrategy(config, c => new NearestFoodStrategy(c, true)),
 				new PlayerStrategy(config, c => new MonteCarloStrategy(config)),
 			});

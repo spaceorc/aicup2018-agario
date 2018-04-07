@@ -317,7 +317,7 @@ namespace Game.Sim
 			for (var i = 0; i < directs.Length; i++)
 			{
 				var direct = directs[i];
-				if (direct.split || !direct.eject)
+				if (direct == null || direct.split || !direct.eject)
 					continue;
 				var fragments = players[i];
 				foreach (var frag in fragments)
@@ -337,7 +337,7 @@ namespace Game.Sim
 			for (var i = 0; i < directs.Length; i++)
 			{
 				var direct = directs[i];
-				if (!direct.split)
+				if (direct == null || !direct.split)
 					continue;
 				var fragments = players[i];
 				var yet_cnt = fragments.Count;
