@@ -25,7 +25,7 @@ namespace UnitTests
 			simState.Apply(turnInput);
 
 
-			var simulator = new Simulator(simState);
+			var simulator = new Simulator(simState, new []{new Point(0, 0),new Point(0, 0),new Point(0, 0),new Point(0, 0) }, new []{0,0,0,0});
 			{
 				var clone = simulator.Clone();
 				//for (int ticks = 0; ticks < 10; ticks++)

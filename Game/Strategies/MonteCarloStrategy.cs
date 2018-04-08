@@ -64,7 +64,7 @@ namespace Game.Strategies
 				return double.MinValue;
 
 			var score = sim.scores[0] - sim.scores.Skip(1).Max();
-			var minGlobalQDist = sim.players[0].Min(p => p.QDistance(globalTarget));
+			var minGlobalQDist = sim.players[0].Min(p => p.QDistance(globalTargets[globalTargetIndex]));
 
 			var minFoodQDist = double.PositiveInfinity;
 			var avgFoodQDist = 0.0;
@@ -108,10 +108,10 @@ namespace Game.Strategies
 
 			avgFoodQDist /= sim.players[0].Count;
 
-			var result = 10000.0 * score + 0.5 * (config.GAME_HEIGHT - Math.Sqrt(minGlobalQDist) / config.GAME_HEIGHT);
+			var result = 10000.0 * score + 0.5 * (config.GAME_HEIGHT - Math.Sqrt(minGlobalQDist)) / config.GAME_HEIGHT;
 			if (!double.IsPositiveInfinity(minFoodQDist))
-				result += 100.0 * (config.GAME_HEIGHT - Math.Sqrt(minFoodQDist) / config.GAME_HEIGHT) 
-				          + 10.0 * (config.GAME_HEIGHT - Math.Sqrt(avgFoodQDist) / config.GAME_HEIGHT);
+				result += 100.0 * (config.GAME_HEIGHT - Math.Sqrt(minFoodQDist)) / config.GAME_HEIGHT 
+				          + 10.0 * (config.GAME_HEIGHT - Math.Sqrt(avgFoodQDist)) / config.GAME_HEIGHT;
 			return result;
 		}
 	}

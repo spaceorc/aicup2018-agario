@@ -21,7 +21,7 @@ namespace Game.Strategies
 		public TurnOutput OnTick(TurnInput turnInput)
 		{
 			state.Apply(turnInput);
-			var direct = GetDirect();
+			var direct = GetDirect() ?? new Direct(0, 0, config) {debug = "Accept defeat"};
 			return direct.ToOutput();
 		}
 

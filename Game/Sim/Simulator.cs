@@ -19,14 +19,20 @@ namespace Game.Sim
 			new List<Player>(),
 			new List<Player>()
 		};
+
+		public Point[] globalTargets;
+		public int[] globalTargetIndices = new int[4];
+		public int[] globalTargetsTaken = new int[4];
 		public int[] scores = new int[4];
 		
 		public Simulator()
 		{
 		}
 
-		public Simulator(SimState simState)
+		public Simulator(SimState simState, Point[] globalTargets, int[] globalTargetIndices)
 		{
+			this.globalTargets = globalTargets;
+			this.globalTargetIndices = globalTargetIndices;
 			tick = simState.tick;
 			viruses = simState.viruses.Select(x => x.Value.item.Clone()).ToList();
 			foods = simState.foods.Select(x => x.Value.item.Clone()).ToList();
@@ -51,6 +57,9 @@ namespace Game.Sim
 				viruses = viruses.Select(x => x.Clone()).ToList(),
 				scores = scores.ToArray(),
 				players = players.Select(fragments => fragments.Select(f => f.Clone()).ToList()).ToArray(),
+				globalTargets = globalTargets,
+				globalTargetIndices = globalTargetIndices.ToArray(),
+				globalTargetsTaken = globalTargetsTaken.ToArray()
 			};
 		}
 
@@ -73,7 +82,27 @@ namespace Game.Sim
 			UpdateScores();
 			SplitViruses();
 
+			UpdateNextGlobalTargets();
+
 			tick++;
+		}
+
+		private void UpdateNextGlobalTargets()
+		{
+			for (var i = 0; i < players.Length; i++)
+			{
+				var fragments = players[i];
+				var globalTarget = globalTargets[globalTargetIndices[i]];
+				foreach (var frag in fragments)
+				{
+					if (frag.QDistance(globalTarget) < 4 * 4 * frag.radius * frag.radius)
+					{
+						globalTargetIndices[i] = (globalTargetIndices[i] + 1) % globalTargets.Length;
+						globalTargetsTaken[i]++;
+						break;
+					}
+				}
+			}
 		}
 
 		private void UpdatePlayersRadius()

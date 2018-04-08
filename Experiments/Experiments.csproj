@@ -11,4 +11,7 @@
   <ItemGroup>
     <Folder Include="logs\" />
   </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
 </Project>

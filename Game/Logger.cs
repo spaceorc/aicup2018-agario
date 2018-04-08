@@ -8,25 +8,38 @@ namespace Game
 	{
 		public enum Level
 		{
+			Debug,
 			Info,
 			Error
 		}
 
-		private static readonly string logFile;
+		private static string logFile;
 
-		static Logger()
-		{
-#if LOGGING
-			logFile = Path.Combine(FileHelper.PatchDirectoryName("logs"), $"log{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.txt");
-#endif
-		}
+		public static bool enableConsole;
+		public static bool enableFile = true;
+		public static Level minLevel = Level.Info;
 
 		[Conditional("LOGGING")]
 		public static void Log(Level level, string msg)
 		{
-			using (var fileStream = File.Open(logFile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite))
-			using (var w = new StreamWriter(fileStream))
-				w.WriteLine($"{DateTime.Now:s} {level.ToString().ToUpper()} {msg}");
+			if (level < minLevel)
+				return;
+			if (enableConsole)
+				Console.Error.WriteLine($"{level.ToString().ToUpper()} {msg}");
+			if (enableFile)
+			{
+				if (logFile == null)
+					logFile = Path.Combine(FileHelper.PatchDirectoryName("logs"), $"log{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.txt");
+				using (var fileStream = File.Open(logFile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite))
+				using (var w = new StreamWriter(fileStream))
+					w.WriteLine($"{DateTime.Now:s} {level.ToString().ToUpper()} {msg}");
+			}
+		}
+
+		[Conditional("LOGGING")]
+		public static void Debug(string msg)
+		{
+			Log(Level.Debug, msg);
 		}
 
 		[Conditional("LOGGING")]

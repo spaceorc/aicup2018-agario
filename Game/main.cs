@@ -1,4 +1,5 @@
 ﻿using System;
+using Game.Helpers;
 using Game.Protocol;
 using Game.Strategies;
 using Newtonsoft.Json;
@@ -14,16 +15,16 @@ namespace Game
 			Logger.Info("Waiting for config...");
 
 			var config = ConsoleProtocol.ReadConfig();
-			Logger.Info($"Config: {JsonConvert.SerializeObject(config)}");
+			Logger.Info($"Config: {config.ToJson()}");
 
 			var strategy = StrategiesRegistry.Create(Settings.DefaultStrategy, config);
 			while (true)
 			{
 				Logger.Info("Waiting for data...");
 				var data = ConsoleProtocol.ReadTurnInput();
-				Logger.Info($"Data: {JsonConvert.SerializeObject(data)}");
+				Logger.Info($"Data: {data.ToJson()}");
 				var command = strategy.OnTick(data);
-				Logger.Info($"Command: {JsonConvert.SerializeObject(command)}");
+				Logger.Info($"Command: {command.ToJson()}");
 				ConsoleProtocol.WriteTurnInput(command);
 			}
 		}

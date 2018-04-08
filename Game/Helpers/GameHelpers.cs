@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 
 namespace Game.Helpers
 {
@@ -19,6 +20,12 @@ namespace Game.Helpers
 				arr[i] = arr[t];
 				arr[t] = tmp;
 			}
+		}
+
+		public static string ToJson(this object o)
+		{
+			return JsonConvert.SerializeObject(o,
+				new JsonSerializerSettings {NullValueHandling = NullValueHandling.Ignore, Formatting = Formatting.None});
 		}
 
 		public static List<Type> GetImplementors<T>()

@@ -1,18 +1,166 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms.VisualStyles;
+using Game;
 using Game.Helpers;
 using Game.Mech;
 using Game.Protocol;
+using Game.Sim;
 using Game.Strategies;
+using Game.Types;
 using Newtonsoft.Json;
+using Point = Game.Types.Point;
 
 namespace Experiments
 {
 	internal class Program
 	{
+		public static void Main212()
+		{
+			Logger.enableFile = false;
+
+			var config = JsonConvert.DeserializeObject<Config>(
+				@"{""GAME_HEIGHT"":660,""GAME_WIDTH"":660,""GAME_TICKS"":75000,""FOOD_MASS"":1.0,""MAX_FRAGS_CNT"":10,""TICKS_TIL_FUSION"":250,""VIRUS_RADIUS"":22.0,""VIRUS_SPLIT_MASS"":80.0,""VISCOSITY"":0.25,""INERTION_FACTOR"":10.0,""SPEED_FACTOR"":25.0}");
+
+			var turnInput = JsonConvert.DeserializeObject<TurnInput>(
+				@"{""Mine"":[{""Id"":""1"",""X"":282.764659119549,""Y"":255.00047968359704,""SX"":2.3029305366512363,""SY"":1.1739094325097006,""R"":12.649110640673518,""M"":40.0,""TTF"":3014700}],""Objects"":[{""Id"":null,""pId"":null,""T"":""F"",""X"":299.0,""Y"":225.0,""R"":0.0,""M"":0.0}]}");
+
+			var log = new DirectoryInfo(FileHelper.PatchDirectoryName("logs")).GetFiles("*.txt").OrderBy(x => x.Name).Select(x => x.FullName).Last();
+
+			var simState = new SimState(config);
+			simState.Apply(turnInput);
+
+			var lines = File.ReadAllLines(log);
+			var globalTargets = new List<Point>();
+			foreach (var gline in lines.Where(ll => ll.IndexOf("GLOBAL: ") >= 0))
+			{
+				var gs = gline.Substring(gline.IndexOf("GLOBAL: ") + "GLOBAL: ".Length).Split(' ');
+				globalTargets.Add(new Point(double.Parse(gs[0]), double.Parse(gs[1])));
+			}
+
+			var simulator = new Simulator(simState, globalTargets.ToArray(), new[] {0, 0, 0, 0});
+			var genome = @"0,723181351890406 0,744578209586711 0,772885398367832 0,774327497358586 0,563500011136522 0,565475642013119 0,414556856460197 0,303055067687787 0,383227259099124 0,427279238788075 0,848288005147263 0,374969424854484 0,354406009593236 0,351577740791988 0,194683879238872 0,990434869653748 0,50676403963322 0,245935701879643"
+				.Split(' ').Select(double.Parse).ToArray();
+
+			var ga = new GA(config, new Random());
+			ga.Simulate(simulator, 0, genome);
+
+			Console.Out.WriteLine(ga.Evaluate(simulator, 0));
+
+		}
+
+		public static void Main123123()
+		{
+			Logger.minLevel = Logger.Level.Debug;
+
+			var config = JsonConvert.DeserializeObject<Config>(
+				@"{""GAME_HEIGHT"":660,""GAME_WIDTH"":660,""GAME_TICKS"":75000,""FOOD_MASS"":1.0,""MAX_FRAGS_CNT"":10,""TICKS_TIL_FUSION"":250,""VIRUS_RADIUS"":22.0,""VIRUS_SPLIT_MASS"":80.0,""VISCOSITY"":0.25,""INERTION_FACTOR"":10.0,""SPEED_FACTOR"":25.0}");
+
+			var turnInput = JsonConvert.DeserializeObject<TurnInput>(
+				@"{""Mine"":[{""Id"":""1"",""X"":282.764659119549,""Y"":255.00047968359704,""SX"":2.3029305366512363,""SY"":1.1739094325097006,""R"":12.649110640673518,""M"":40.0,""TTF"":3014700}],""Objects"":[{""Id"":null,""pId"":null,""T"":""F"",""X"":299.0,""Y"":225.0,""R"":0.0,""M"":0.0}]}");
+
+			//var gaStrategy = new GAStrategy(config);
+			//var turnOutput1 = gaStrategy.OnTick(turnInput);
+			//Console.Out.WriteLine(JsonConvert.SerializeObject(turnOutput1));
+
+			var log = new DirectoryInfo(FileHelper.PatchDirectoryName("logs")).GetFiles("*.txt").OrderBy(x => x.Name).Select(x => x.FullName).Last();
+
+			var bitmap = new Bitmap(config.GAME_WIDTH, config.GAME_HEIGHT);
+			using (var graphics = Graphics.FromImage(bitmap))
+			{
+				foreach (var mine in turnInput.Mine)
+				{
+					Draw(mine.X, mine.Y, mine.R, Color.Green);
+				}
+
+				var colors = new Dictionary<string, Color>
+				{
+					{"F", Color.Magenta},
+					{"E", Color.Red},
+				};
+				foreach (var obj in turnInput.Objects)
+				{
+					Draw((int) obj.X, (int) obj.Y, obj.R, colors[obj.T]);
+				}
+
+				var lineColors = new[] {Color.Blue, Color.Red, Color.Wheat, Color.CornflowerBlue, Color.DarkOliveGreen, Color.DarkOrchid, Color.GreenYellow };
+
+				var lines = File.ReadAllLines(log);
+
+				var routes = new List<(double score, double[] genome, List<Point> route)>();
+				Point cur;
+				
+				foreach (var line in lines)
+				{
+					if (line.IndexOf("BEFORE: ") >= 0)
+					{
+						cur = new Point(turnInput.Mine[0].X, turnInput.Mine[0].Y);
+						routes.Add((0, null, new List<Point> { cur }));
+					}
+					else if (line.IndexOf("GROUP: ") >= 0)
+					{
+						var nexts = line.Substring(line.IndexOf("GROUP: ") + "GROUP: ".Length).Split(' ');
+						var x = double.Parse(nexts[0]);
+						var y = double.Parse(nexts[1]);
+						var next = new Point(x, y);
+						routes.Last().route.Add(next);
+						cur = next;
+					}else if (line.IndexOf("AFTER: ") >= 0)
+					{
+						var ss = line.Substring(line.IndexOf("AFTER: ") + "AFTER: ".Length).Split(' ');
+						var score = double.Parse(ss[0]);
+						var genome = ss.Skip(1).Select(double.Parse).ToArray();
+						routes.Add((score, genome, routes.Last().route));
+						routes.RemoveAt(routes.Count - 2);
+					}
+				}
+
+				var l = 0;
+				//foreach (var r in routes.OrderByDescending(x => x.score).Take(7))
+				foreach (var r in routes.Take(7))
+				{
+					var route = r.route;
+					l = (l + 1) % lineColors.Length;
+					for (int i = 0; i < route.Count - 1; i++)
+					{
+						using (var pen = new Pen(lineColors[l]))
+							graphics.DrawLine(pen, (int)route[i].x, (int)route[i].y, (int)route[i+1].x, (int)route[i+1].y);
+					}
+				}
+
+				foreach (var gline in lines.Where(ll => ll.IndexOf("GLOBAL: ") >= 0))
+				{
+					var gs = gline.Substring(gline.IndexOf("GLOBAL: ") + "GLOBAL: ".Length).Split(' ');
+					Draw(double.Parse(gs[0]), double.Parse(gs[1]), 5, Color.DarkSalmon);
+					Draw(double.Parse(gs[0]), double.Parse(gs[1]), 4, Color.DarkSalmon);
+					Draw(double.Parse(gs[0]), double.Parse(gs[1]), 3, Color.DarkSalmon);
+					Draw(double.Parse(gs[0]), double.Parse(gs[1]), 2, Color.DarkSalmon);
+				}
+
+
+				void Draw(double x, double y, double radius, Color color)
+				{
+					radius = Math.Max(radius, 3);
+					using (var pen = new Pen(color))
+						graphics.DrawEllipse(pen, (int) (x - radius), (int) (y - radius), (int) radius*2, (int) radius*2);
+				}
+			}
+
+			bitmap.Save(log + "-first.jpg");
+
+
+			/*gaStrategy = new GAStrategy(config);
+			var turnOutput2 = gaStrategy.OnTick(turnInput);*/
+
+			
+			//Console.Out.WriteLine(JsonConvert.SerializeObject(turnOutput2));
+		}
+
 		public static void Main()
 		{
 			var config = JsonConvert.DeserializeObject<Config>(
@@ -22,7 +170,7 @@ namespace Experiments
 				new PlayerStrategy(config, c => new SimpleStrategy(c)),
 				new PlayerStrategy(config, c => new GAStrategy(c)),
 				new PlayerStrategy(config, c => new NearestFoodStrategy(c, true)),
-				new PlayerStrategy(config, c => new MonteCarloStrategy(config)),
+				new PlayerStrategy(config, c => new NearestFoodStrategy(c, false)),
 			});
 			mechanic.Play();
 			foreach (var kvp in mechanic.playerScores)
