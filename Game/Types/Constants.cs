@@ -19,22 +19,20 @@ namespace Game.Types
 
 		public const int START_PLAYER_SETS = 1;
 		public const int START_PLAYER_OFFSET = 400;
-		public const double PLAYER_RADIUS = 12.65;
+		public const double PLAYER_RADIUS_FACTOR = 2;
 		public const double PLAYER_MASS = 40.0;
+		public static readonly double PLAYER_RADIUS = PLAYER_RADIUS_FACTOR * Math.Sqrt(PLAYER_MASS);
 
 		public const double VIS_FACTOR = 4.0; // vision = radius * VF
 		public const double VIS_FACTOR_FR = 2.5; // vision = radius * VFF * qSqrt(fragments.count())
 		public const double VIS_SHIFT = 10.0; // dx = qCos(angle) * VS; dy = qSin(angle) * VS
 		public const double DRAW_SPEED_FACTOR = 14.0;
-		//const double INERTION_FACTOR = 10.0;
-
+		
 		public const double COLLISION_POWER = 20.0;
-		//const double SPEED_FACTOR = 25.0; // speed = SF / sqrt(mass)
-		public const double RADIUS_FACTOR = 2.0; // radius = RF * sqrt(mass)
 		public const double MASS_EAT_FACTOR = 1.20; // mass > food.mass * MEF
 		public const double DIAM_EAT_FACTOR = 2.0/3.0; // dist - eject->getR() + (eject->getR() * 2) * DIAM_EAT_FACTOR < radius
 
-		public const double RAD_HURT_FACTOR = 0.66; // (radius * RHF + player.radius) > dist
+		public const double RAD_HURT_FACTOR = 2.0 / 3.0; // (radius * RHF + player.radius) > dist
 		public const double MIN_BURST_MASS = 60.0; // MBM * 2 < mass
 											//const int MAX_FRAGS_CNT = 10;
 		public const double BURST_START_SPEED = 8.0;

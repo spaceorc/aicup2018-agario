@@ -112,7 +112,7 @@ namespace Game.Types
 				return false;
 			}
 			int fragsCnt = (int)(mass / Constants.MIN_BURST_MASS);
-			if (fragsCnt > 1 && yetCnt + 1 <= config.MAX_FRAGS_CNT)
+			if (fragsCnt > 1 && RestFragmentsCount(yetCnt) > 0)
 			{
 				return true;
 			}
@@ -147,14 +147,11 @@ namespace Game.Types
 		{
 			List<Player> fragments = new List<Player>();
 			int new_frags_cnt = (int)(mass / Constants.MIN_BURST_MASS) - 1;
-			int max_cnt = config.MAX_FRAGS_CNT - yet_cnt;
-			if (new_frags_cnt > max_cnt)
-			{
-				new_frags_cnt = max_cnt;
-			}
+
+			new_frags_cnt = Math.Min(new_frags_cnt, RestFragmentsCount(yet_cnt));
 
 			double new_mass = mass / (new_frags_cnt + 1);
-			double new_radius = Constants.RADIUS_FACTOR * Math.Sqrt(new_mass);
+			double new_radius = Mass2Radius(new_mass);
 
 			for (int I = 0; I < new_frags_cnt; I++)
 			{
@@ -166,7 +163,7 @@ namespace Game.Types
 				new_fragment.SetImpulse(Constants.BURST_START_SPEED, burst_angle);
 			}
 			SetImpulse(Constants.BURST_START_SPEED, angle + Constants.BURST_ANGLE_SPECTRUM / 2);
-			
+
 			fragmentId = max_fId + new_frags_cnt + 1;
 			mass = new_mass;
 			radius = new_radius;
@@ -176,7 +173,7 @@ namespace Game.Types
 
 		public bool CanSplit(int yet_cnt)
 		{
-			if (yet_cnt + 1 <= config.MAX_FRAGS_CNT)
+			if (RestFragmentsCount(yet_cnt) > 0)
 			{
 				if (mass > Constants.MIN_SPLIT_MASS)
 					return true;
@@ -187,7 +184,7 @@ namespace Game.Types
 		public Player SplitNow(int max_fId)
 		{
 			double new_mass = mass / 2;
-			double new_radius = Constants.RADIUS_FACTOR * Math.Sqrt(new_mass);
+			double new_radius = Mass2Radius(new_mass);
 
 			var new_player = new Player(id, x, y, new_radius, new_mass, max_fId + 1, config);
 			new_player.SetImpulse(Constants.SPLIT_START_SPEED, angle);
@@ -303,7 +300,7 @@ namespace Game.Types
 			new_eject.SetImpulse(Constants.EJECT_START_SPEED, angle);
 
 			mass -= Constants.EJECT_MASS;
-			radius = Constants.RADIUS_FACTOR * Math.Sqrt(mass);
+			radius = Mass2Radius(mass);
 			score += Constants.SCORE_FOR_EJECT;
 			return new_eject;
 		}
@@ -311,7 +308,7 @@ namespace Game.Types
 		public bool UpdateByMass()
 		{
 			bool changed = false;
-			double new_radius = Constants.RADIUS_FACTOR * Math.Sqrt(mass);
+			double new_radius = Mass2Radius(mass);
 			if (radius != new_radius)
 			{
 				radius = new_radius;
@@ -446,7 +443,22 @@ namespace Game.Types
 		public void ShrinkNow()
 		{
 			mass -= ((mass - Constants.MIN_SHRINK_MASS) * Constants.SHRINK_FACTOR);
-			radius = Constants.RADIUS_FACTOR * Math.Sqrt(mass);
+			radius = Mass2Radius(mass);
+		}
+
+		private static double Mass2Radius(double mass)
+		{
+			return Constants.PLAYER_RADIUS_FACTOR * Math.Sqrt(mass);
+		}
+
+		/**
+		 * @param existingFragmentsCount число фрагментов игрока
+		 * @return максимально возможное число фрагментов, которое может дополнительно появиться у игрока в результате
+		 * взрыва / деления
+		 */
+		private int RestFragmentsCount(int existingFragmentsCount)
+		{
+			return config.MAX_FRAGS_CNT - existingFragmentsCount;
 		}
 
 		public override TurnInput.ObjectData ToObjectData()

@@ -94,6 +94,26 @@ namespace Game.Mech
 			return false;
 		}
 
+		public void SplitFragments(List<Player> fragments)
+		{
+			int fragments_count = fragments.Count;
+
+			// Сортировка фрагментов по массе. При совпадении массы - по индексу.
+			// Фрагменты с большим значением критерия после сортировки окажутся ближе к началу.
+			fragments.Sort((lhs, rhs) => (-lhs.mass, lhs.fragmentId).CompareTo((-rhs.mass, rhs.fragmentId)));
+
+			foreach (Player frag in fragments)
+			{
+				if (frag.CanSplit(fragments_count))
+				{
+					int max_fId = players.Where(f => f.id == frag.id).Max(f => f.fragmentId);
+					Player new_frag = frag.SplitNow(max_fId);
+					players.Add(new_frag);
+					fragments_count++;
+				}
+			}
+		}
+		
 		private void PlayerSplits()
 		{
 			foreach (var it in strategyDirects)
@@ -103,18 +123,7 @@ namespace Game.Mech
 				if (!direct.split)
 					continue;
 				var fragments = players.Where(p => p.id == sId).ToList();
-				int yet_cnt = fragments.Count;
-
-				foreach (var frag in fragments)
-				{
-					if (frag.CanSplit(yet_cnt))
-					{
-						int max_fId = fragments.Max(f => f.fragmentId);
-						var new_frag = frag.SplitNow(max_fId);
-						players.Add(new_frag);
-						yet_cnt++;
-					}
-				}
+				SplitFragments(fragments);
 			}
 		}
 
@@ -297,30 +306,52 @@ namespace Game.Mech
 
 		private void FusePlayers()
 		{
-			var fused_players = new HashSet<Player>();
-			foreach (Player player in players)
+			var playerIds = new HashSet<int>();
+			foreach (var player in players)
+				playerIds.Add(player.id);
+
+			var fusedPlayers = new List<Player>();
+			foreach (var id in playerIds)
 			{
-				if (fused_players.Contains(player))
-					continue;
+				var fragments = players.Where(p => p.id == id).ToList();
+				
+				// приведём в предсказуемый порядок
+				fragments.Sort((lhs, rhs) => (-lhs.mass, lhs.fragmentId).CompareTo((-rhs.mass, rhs.fragmentId)));
 
-				var fragments = players.Where(p => p.id == player.id).ToList();
-				if (fragments.Count == 1)
-					player.ClearFragments();
-
-				foreach (var frag in fragments)
+				bool new_fusion_check = true; // проверим всех. Если слияние произошло - перепроверим ещё разок, чтобы все могли слиться в один тик
+				while (new_fusion_check)
 				{
-					if (player != frag && !fused_players.Contains(frag))
+					new_fusion_check = false;
+					for (var it = 0; it < fragments.Count - 1; it++)
 					{
-						if (player.CanFuse(frag))
+						var player = fragments[it];
+						for (var it2 = it + 1; it2 < fragments.Count;)
 						{
-							player.Fusion(frag);
-							fused_players.Add(frag);
+							var frag = fragments[it2];
+							if (player.CanFuse(frag))
+							{
+								player.Fusion(frag);
+								fusedPlayers.Add(frag);
+								new_fusion_check = true;
+								fragments.RemoveAt(it2);
+							}
+							else
+								++it2;
 						}
 					}
+
+					if (new_fusion_check)
+					{
+						foreach (var fragment in fragments)
+							fragment.UpdateByMass();
+					}
 				}
+
+				if (fragments.Count == 1)
+					fragments[0].ClearFragments();
 			}
 
-			foreach (var p in fused_players)
+			foreach (var p in fusedPlayers)
 				players.Remove(p);
 		}
 
@@ -372,34 +403,44 @@ namespace Game.Mech
 		}
 
 
-		private List<Circle> GetVisibles(List<Player> for_them) {
+		private List<Circle> GetVisibles(List<Player> for_them)
+		{
 			// fog of war
-			foreach (var player in players) {
+			foreach (var player in players)
+			{
 				int frag_cnt = players.Count(p => p.id == player.id);
 				player.UpdateVision(frag_cnt);
 			}
 
-			var visibles = new List<Circle>();
-			foreach (var fragment in for_them)
+			Func<Circle, bool> canSee = c =>
 			{
-				foreach (var food in foods)
+				foreach (Player fragment in for_them)
 				{
-					if (fragment.CanSee(food))
-						visibles.Add(food);
+					if (fragment.CanSee(c))
+						return true;
 				}
-				foreach (var eject in ejections)
-				{
-					if (fragment.CanSee(eject))
-						visibles.Add(eject);
-				}
-				foreach (var player in players)
-				{
-					if (for_them.IndexOf(player) == -1)
-					{
-						if (fragment.CanSee(player))
-							visibles.Add(player);
-					}
-				}
+
+				return false;
+			};
+
+			var visibles = new List<Circle>();
+			foreach (var food in foods)
+			{
+				if (canSee(food))
+					visibles.Add(food);
+			}
+
+			foreach (var eject in ejections)
+			{
+				if (canSee(eject))
+					visibles.Add(eject);
+			}
+
+			var pId = for_them.Count == 0 ? -1 : for_them[0].id;
+			foreach (var player in players)
+			{
+				if (player.id != pId && canSee(player))
+					visibles.Add(player);
 			}
 
 			foreach (var virus in viruses)

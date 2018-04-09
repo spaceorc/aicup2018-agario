@@ -5,6 +5,13 @@ using Game.Types;
 
 namespace Game.Sim
 {
+	public unsafe struct FastState
+	{
+		// food (10 nearest)
+		// viruses (10 nearest)
+		// fragments for each player (16 nearest)
+	}
+
 	public class Simulator
 	{
 		public int tick;
@@ -241,22 +248,36 @@ namespace Game.Sim
 				if (fragments.Count == 0)
 					continue;
 
-				for (var i = 0; i < fragments.Count - 1; i++)
+				// приведём в предсказуемый порядок
+				fragments.Sort((lhs, rhs) => (-lhs.mass, lhs.fragmentId).CompareTo((-rhs.mass, rhs.fragmentId)));
+
+				bool new_fusion_check = true; // проверим всех. Если слияние произошло - перепроверим ещё разок, чтобы все могли слиться в один тик
+				while (new_fusion_check)
 				{
-					var frag = fragments[i];
-					for (var j = i + 1; j < fragments.Count; )
+					new_fusion_check = false;
+					for (var i = 0; i < fragments.Count - 1; i++)
 					{
-						var frag2 = fragments[j];
-						if (frag.CanFuse(frag2))
+						var frag = fragments[i];
+						for (var j = i + 1; j < fragments.Count; )
 						{
-							frag.Fusion(frag2);
-							fragments.RemoveAt(j);
+							var frag2 = fragments[j];
+							if (frag.CanFuse(frag2))
+							{
+								frag.Fusion(frag2);
+								fragments.RemoveAt(j);
+								new_fusion_check = true;
+							}
+							else
+								j++;
 						}
-						else
-							j++;
+					}
+
+					if (new_fusion_check)
+					{
+						foreach (var fragment in fragments)
+							fragment.UpdateByMass();
 					}
 				}
-
 				if (fragments.Count == 1)
 					fragments[0].ClearFragments();
 			}
@@ -368,19 +389,25 @@ namespace Game.Sim
 				var direct = directs[i];
 				if (direct == null || !direct.split)
 					continue;
+
 				var fragments = players[i];
-				var yet_cnt = fragments.Count;
+				// Сортировка фрагментов по массе. При совпадении массы - по индексу.
+				// Фрагменты с большим значением критерия после сортировки окажутся ближе к началу.
+				fragments.Sort((lhs, rhs) => (-lhs.mass, lhs.fragmentId).CompareTo((-rhs.mass, rhs.fragmentId)));
+
+
+				int fragments_count = fragments.Count;
 
 				var origFragmentsCount = fragments.Count;
 				for (var fi = 0; fi < origFragmentsCount; fi++)
 				{
 					var frag = fragments[fi];
-					if (frag.CanSplit(yet_cnt))
+					if (frag.CanSplit(fragments_count))
 					{
 						var max_fId = fragments.Max(f => f.fragmentId);
 						var new_frag = frag.SplitNow(max_fId);
 						fragments.Add(new_frag);
-						yet_cnt++;
+						fragments_count++;
 					}
 				}
 			}
