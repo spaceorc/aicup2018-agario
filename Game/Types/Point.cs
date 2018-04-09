@@ -34,9 +34,6 @@ namespace Game.Types
 			y += dy;
 		}
 
-		public override string ToString()
-		{
-			return $"{x},{y}";
-		}
+		public override string ToString() => $"{x},{y}";
 	}
 }

@@ -5,9 +5,9 @@ namespace Game.Types
 {
 	public class Virus : Circle
 	{
-		private double speed;
-		private double angle;
-		private double splitAngle;
+		public double speed;
+		public double angle;
+		public double splitAngle;
 
 		public Virus(int id, double x, double y, double mass, Config config) : base(id, x, y, config.VIRUS_RADIUS, mass, config)
 		{

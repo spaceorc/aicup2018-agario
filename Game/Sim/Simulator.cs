@@ -5,13 +5,6 @@ using Game.Types;
 
 namespace Game.Sim
 {
-	public unsafe struct FastState
-	{
-		// food (10 nearest)
-		// viruses (10 nearest)
-		// fragments for each player (16 nearest)
-	}
-
 	public class Simulator
 	{
 		public int tick;
