@@ -100,7 +100,7 @@ namespace Game.Mech
 
 			// Сортировка фрагментов по массе. При совпадении массы - по индексу.
 			// Фрагменты с большим значением критерия после сортировки окажутся ближе к началу.
-			fragments.Sort((lhs, rhs) => (-lhs.mass, lhs.fragmentId).CompareTo((-rhs.mass, rhs.fragmentId)));
+			fragments.Sort((lhs, rhs) => -(lhs.mass, lhs.fragmentId).CompareTo((rhs.mass, rhs.fragmentId)));
 
 			foreach (Player frag in fragments)
 			{

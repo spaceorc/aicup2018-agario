@@ -386,7 +386,7 @@ namespace Game.Sim
 				var fragments = players[i];
 				// Сортировка фрагментов по массе. При совпадении массы - по индексу.
 				// Фрагменты с большим значением критерия после сортировки окажутся ближе к началу.
-				fragments.Sort((lhs, rhs) => (-lhs.mass, lhs.fragmentId).CompareTo((-rhs.mass, rhs.fragmentId)));
+				fragments.Sort((lhs, rhs) => -(lhs.mass, lhs.fragmentId).CompareTo((rhs.mass, rhs.fragmentId)));
 
 
 				int fragments_count = fragments.Count;

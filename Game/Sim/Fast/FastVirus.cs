@@ -3,6 +3,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using Game.Protocol;
 using Game.Types;
 
 namespace Game.Sim.Fast
@@ -10,7 +11,7 @@ namespace Game.Sim.Fast
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct FastVirus
 	{
-		public const int size = sizeof(double) * 7;
+		public const int size = MovingPoint.size + sizeof(double) * 3;
 
 		static FastVirus()
 		{
@@ -20,26 +21,23 @@ namespace Game.Sim.Fast
 
 		public FastVirus(Virus virus) : this()
 		{
-			x = virus.x;
-			y = virus.y;
+			point.x = virus.x;
+			point.y = virus.y;
+			point.angle = virus.angle;
+			point.speed = virus.speed;
 			radius = virus.radius;
 			mass = virus.mass;
-			angle = virus.angle;
 			splitAngle = virus.splitAngle;
-			speed = virus.speed;
 		}
-		
-		public double x;
-		public double y;
+
+		public MovingPoint point;
 		public double mass;
 		public double radius;
-		public double speed;
-		public double angle;
 		public double splitAngle;
 
 		public override string ToString()
 		{
-			return $"{x},{y} => M:{mass}, R:{radius}, A:{angle}, S:{speed}, {nameof(splitAngle)}:{splitAngle}";
+			return $"{point}, M:{mass}, R:{radius}, {nameof(splitAngle)}:{splitAngle}";
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
@@ -72,6 +70,12 @@ namespace Game.Sim.Fast
 					return result.ToString();
 				}
 			}
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Move(Config config)
+		{
+			point.Move(config, radius);
 		}
 	}
 }

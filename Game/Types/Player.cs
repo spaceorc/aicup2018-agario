@@ -180,7 +180,7 @@ namespace Game.Types
 			}
 			return false;
 		}
-
+		
 		public Player SplitNow(int max_fId)
 		{
 			double new_mass = mass / 2;

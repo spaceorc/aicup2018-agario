@@ -3,6 +3,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using Game.Protocol;
 using Game.Types;
 
 namespace Game.Sim.Fast
@@ -20,22 +21,19 @@ namespace Game.Sim.Fast
 
 		public FastEjection(Ejection ejection) : this()
 		{
-			x = ejection.x;
-			y = ejection.y;
-			angle = ejection.angle;
-			speed = ejection.speed;
+			point.x = ejection.x;
+			point.y = ejection.y;
+			point.angle = ejection.angle;
+			point.speed = ejection.speed;
 			player = ejection.player;
 		}
 
-		public double x;
-		public double y;
-		public double angle;
-		public double speed;
+		public MovingPoint point;
 		public int player;
 
 		public override string ToString()
 		{
-			return $"{x},{y} => A:{angle}, S:{speed}, {nameof(player)}:{player}";
+			return $"{point}, {nameof(player)}:{player}";
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
@@ -68,6 +66,12 @@ namespace Game.Sim.Fast
 					return result.ToString();
 				}
 			}
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Move(Config config)
+		{
+			point.Move(config, Constants.EJECT_RADIUS);
 		}
 	}
 }
