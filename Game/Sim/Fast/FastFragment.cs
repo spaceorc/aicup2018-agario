@@ -225,6 +225,20 @@ namespace Game.Sim.Fast
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public double QDistance(FastVirus* other)
+		{
+			var dx = x - other->point.x;
+			var dy = y - other->point.y;
+			return dx * dx + dy * dy;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public double Distance(FastVirus* other)
+		{
+			return Math.Sqrt(QDistance(other));
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public double QDistance(FastFragment* other)
 		{
 			var dx = x - other->x;
@@ -379,7 +393,8 @@ namespace Game.Sim.Fast
 				mass = new_mass,
 				speed = Constants.SPLIT_START_SPEED,
 				angle = angle,
-				isFast = true
+				isFast = true,
+				fuse_timer = config.TICKS_TIL_FUSION
 			};
 			
 			fuse_timer = config.TICKS_TIL_FUSION;
@@ -442,6 +457,19 @@ namespace Game.Sim.Fast
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public bool CanBurst(byte yet_cnt, Config config)
+		{
+			if (mass < Constants.MIN_BURST_MASS * 2)
+				return false;
+
+			int fragsCnt = (int)(mass / Constants.MIN_BURST_MASS);
+			if (fragsCnt > 1 && RestFragmentsCount(yet_cnt, config) > 0)
+				return true;
+
+			return false;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void UpdateByMass(Config config)
 		{
 			radius = Mass2Radius(mass);
@@ -456,6 +484,67 @@ namespace Game.Sim.Fast
 			if (y - radius < 0) y += radius - y;
 			if (x + radius > config.GAME_WIDTH) x -= radius + x - config.GAME_WIDTH;
 			if (y + radius > config.GAME_HEIGHT) y -= radius + y - config.GAME_HEIGHT;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void BurstNow(List* fragments, Config config)
+		{
+			int new_frags_cnt = (int)(mass / Constants.MIN_BURST_MASS) - 1;
+
+			new_frags_cnt = Math.Min(new_frags_cnt, RestFragmentsCount(fragments->count, config));
+
+			double new_mass = mass / (new_frags_cnt + 1);
+			double new_radius = Mass2Radius(new_mass);
+
+			for (int I = 0; I < new_frags_cnt; I++)
+			{
+				double burst_angle = angle - Constants.BURST_ANGLE_SPECTRUM / 2 + I * Constants.BURST_ANGLE_SPECTRUM / new_frags_cnt;
+				var new_fragment = new FastFragment
+				{
+					x = x,
+					y = y,
+					radius = new_radius,
+					mass = new_mass,
+					isFast = true,
+					speed = Constants.BURST_START_SPEED,
+					angle = burst_angle,
+					fuse_timer = config.TICKS_TIL_FUSION
+				};
+				if (fragments->count < List.capacity)
+					fragments->Add(new_fragment);
+			}
+
+			isFast = true;
+			speed = Constants.BURST_START_SPEED;
+			angle = angle + Constants.BURST_ANGLE_SPECTRUM / 2;
+			mass = new_mass;
+			radius = new_radius;
+			fuse_timer = config.TICKS_TIL_FUSION;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void BurstOn(FastVirus* virus, Config config)
+		{
+			double dist = Distance(virus);
+			double dy = y - virus->point.y, dx = x - virus->point.x;
+			double new_angle = 0.0;
+
+			if (dist > 0)
+			{
+				new_angle = Math.Asin(dy / dist);
+				if (dx < 0)
+				{
+					new_angle = Math.PI - new_angle;
+				}
+			}
+			angle = new_angle;
+			double max_speed = config.SPEED_FACTOR / Math.Sqrt(mass);
+			if (speed < max_speed)
+			{
+				speed = max_speed;
+			}
+			mass += Constants.BURST_BONUS;
+			score += Constants.SCORE_FOR_BURST;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

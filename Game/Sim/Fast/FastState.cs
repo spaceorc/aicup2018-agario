@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Runtime.InteropServices;
 using Game.Protocol;
 using Game.Types;
@@ -19,7 +18,7 @@ namespace Game.Sim.Fast
 		public FastFragment.List fragments2; // 16 nearest
 		public FastFragment.List fragments3; // 16 nearest
 
-		public fixed int score[4];
+		public fixed int scores[4];
 		public int checkpointsTaken;
 		public int nextCheckpoint;
 		public int tick;
@@ -74,13 +73,13 @@ namespace Game.Sim.Fast
 
 			EatAll(config);
 			FusePlayers(config);
-			BurstOnViruses();
+			BurstOnViruses(config);
 
-			UpdatePlayersRadius();
+			UpdatePlayersRadius(config);
 			UpdateScores();
-			SplitViruses();
+			SplitViruses(config);
 
-			UpdateNextGlobalTargets();
+			UpdateNextCheckpoint(globalState);
 
 			tick++;
 		}
@@ -144,13 +143,11 @@ namespace Game.Sim.Fast
 					var frag = (FastFragment*)fragments->data;
 					for (var i = 0; i < fragments->count; i++, frag++)
 					{
-						if (that->ejections.count < FastEjection.List.capacity)
+						if (frag->CanEject())
 						{
-							if (frag->CanEject())
-							{
-								var new_eject = frag->EjectNow(p);
+							var new_eject = frag->EjectNow(p);
+							if (that->ejections.count < FastEjection.List.capacity)
 								that->ejections.Add(new_eject);
-							}
 						}
 					}
 				}
@@ -173,13 +170,11 @@ namespace Game.Sim.Fast
 
 					for (var i = 0; i < origFragmentsCount; i++, frag++)
 					{
-						if (fragments->count < FastFragment.List.capacity)
+						if (frag->CanSplit(fragments->count, config))
 						{
-							if (frag->CanSplit(fragments->count, config))
-							{
-								var new_frag = frag->SplitNow(config);
+							var new_frag = frag->SplitNow(config);
+							if (fragments->count < FastFragment.List.capacity)
 								fragments->Add(new_frag);
-							}
 						}
 					}
 
@@ -405,12 +400,134 @@ namespace Game.Sim.Fast
 						if (new_fusion_check)
 						{
 							frag = (FastFragment*)fragments->data;
-							for (var i = 0; i < fragments->count - 1; i++, frag++)
+							for (var i = 0; i < fragments->count; i++, frag++)
 								frag->UpdateByMass(config);
 						}
 					}
 
 					fragments->Sort();
+				}
+			}
+		}
+
+		private void BurstOnViruses(Config config)
+		{
+			fixed (FastState* that = &this)
+			{
+				byte tv = 0;
+				var virus = (FastVirus*)that->viruses.data;
+				var tvirus = virus;
+				for (int v = 0; v < that->viruses.count; v++, virus++)
+				{
+					var nearest_dist = double.PositiveInfinity;
+					var fragments = &that->fragments0;
+					FastFragment.List* nearest_fragments = null;
+					FastFragment* nearest_frag = null;
+					for (var p = 0; p < 4; p++, fragments++)
+					{
+						var frag = (FastFragment*)fragments->data;
+						for (var i = 0; i < fragments->count; i++, frag++)
+						{
+							var qdist = virus->CanHurt(frag);
+							if (qdist < nearest_dist)
+							{
+								var yet_cnt = fragments->count;
+								if (frag->CanBurst(yet_cnt, config))
+								{
+									nearest_dist = qdist;
+									nearest_frag = frag;
+									nearest_fragments = fragments;
+								}
+							}
+						}
+					}
+
+					if (nearest_frag != null)
+					{
+						nearest_frag->BurstOn(virus, config);
+						nearest_frag->BurstNow(nearest_fragments, config);
+					}
+					else
+					{
+						if (tv != v)
+							*tvirus = *virus;
+						tv++;
+						tvirus++;
+					}
+				}
+
+				that->viruses.count = tv;
+			}
+		}
+
+		private void UpdatePlayersRadius(Config config)
+		{
+			fixed (FastState* that = &this)
+			{
+				var fragments = &that->fragments0;
+				for (var p = 0; p < 4; p++, fragments++)
+				{
+					var frag = (FastFragment*)fragments->data;
+					for (var i = 0; i < fragments->count; i++, frag++)
+						frag->UpdateByMass(config);
+					fragments->Sort();
+				}
+			}
+		}
+
+		private void UpdateScores()
+		{
+			fixed (FastState* that = &this)
+			{
+				var fragments = &that->fragments0;
+				for (var p = 0; p < 4; p++, fragments++)
+				{
+					var frag = (FastFragment*)fragments->data;
+					for (var i = 0; i < fragments->count; i++, frag++)
+					{
+						var score = frag->score;
+						if (score > 0)
+						{
+							frag->score = 0;
+							that->scores[p] += score;
+						}
+					}
+				}
+			}
+		}
+
+		private void SplitViruses(Config config)
+		{
+			fixed (FastState* that = &this)
+			{
+				var virus = (FastVirus*)that->viruses.data;
+				var virusesCount = that->viruses.count;
+				for (int v = 0; v < virusesCount; v++, virus++)
+				{
+					if (virus->CanSplit(config))
+					{
+						var new_virus = virus->SplitNow();
+						if (that->viruses.count < FastVirus.List.capacity)
+							viruses.Add(new_virus);
+					}
+				}
+			}
+		}
+
+		private void UpdateNextCheckpoint(FastGlobalState* globalState)
+		{
+			fixed (FastState* that = &this)
+			{
+				var fragments = &that->fragments0;
+				var frag = (FastFragment*)fragments->data;
+				for (var i = 0; i < fragments->count; i++, frag++)
+				{
+					var checkpoints = (FastPoint*)globalState->checkpoints.data;
+					if (frag->QDistance(checkpoints + that->nextCheckpoint) < 4 * 4 * frag->radius * frag->radius)
+					{
+						that->nextCheckpoint = (that->nextCheckpoint + 1) % globalState->checkpoints.count;
+						that->checkpointsTaken++;
+					}
 				}
 			}
 		}

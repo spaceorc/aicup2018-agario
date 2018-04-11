@@ -87,6 +87,20 @@ namespace Game.Sim.Fast
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public double Distance(FastFragment* other)
+		{
+			return Math.Sqrt(QDistance(other));
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public double QDistance(FastFragment* other)
+		{
+			var dx = point.x - other->x;
+			var dy = point.y - other->y;
+			return dx * dx + dy * dy;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public double Distance(FastEjection* other)
 		{
 			return Math.Sqrt(QDistance(other));
@@ -109,6 +123,34 @@ namespace Game.Sim.Fast
 		{
 			mass += Constants.EJECT_MASS;
 			splitAngle = eject->point.angle;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public double CanHurt(FastFragment* frag)
+		{
+			if (frag->radius < radius)
+				return double.PositiveInfinity;
+			var qdist = QDistance(frag);
+			var tr = radius * Constants.RAD_HURT_FACTOR + frag->radius;
+			return qdist < tr * tr ? qdist : double.PositiveInfinity;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public bool CanSplit(Config config)
+		{
+			return mass > config.VIRUS_SPLIT_MASS;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public FastVirus SplitNow()
+		{
+			var newVirus = new FastVirus
+			{
+				point = {x = point.x, y = point.y, angle = splitAngle, speed = Constants.VIRUS_SPLIT_SPEED},
+				mass = Constants.VIRUS_MASS
+			};
+			mass = Constants.VIRUS_MASS;
+			return newVirus;
 		}
 	}
 }
