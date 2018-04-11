@@ -15,7 +15,7 @@ namespace Game.Sim.Fast
 		static FastPoint()
 		{
 			if (sizeof(FastPoint) != size)
-				throw new InvalidOperationException($"sizeof({nameof(FastPoint)}) != {size}");
+				throw new InvalidOperationException($"sizeof({nameof(FastPoint)})({sizeof(FastPoint)}) != {size}");
 		}
 
 		public double x;

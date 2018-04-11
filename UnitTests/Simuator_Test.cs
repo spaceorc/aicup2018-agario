@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using Game.Protocol;
 using Game.Sim;
+using Game.Sim.Fast;
 using Game.Types;
 using Newtonsoft.Json;
 using NUnit.Framework;
@@ -10,7 +11,7 @@ using NUnit.Framework;
 namespace UnitTests
 {
 	[TestFixture]
-	public class Simuator_Test
+	public unsafe class Simuator_Test
 	{
 		[Test]
 		public void METHOD()
@@ -35,14 +36,45 @@ namespace UnitTests
 			}
 
 
+			var gs = new FastGlobalState();
+			gs.checkpoints.Add(0, 0);
+			gs.checkpoints.Add(0, 0);
+			gs.checkpoints.Add(0, 0);
+			gs.checkpoints.Add(0, 0);
+
+			var fs = new FastState(simState, 0);
+
+			Console.Out.WriteLine($"size: {sizeof(FastState)}");
+
 			var stopwatch = Stopwatch.StartNew();
 
-			for (int iter = 0; iter < 1000; iter++)
+			//for (int iter = 0; iter < 10000; iter++)
+			//{
+			//	var clone = simulator.Clone();
+			//	for (int ticks = 0; ticks < 10; ticks++)
+			//	{
+			//		clone.Tick(new[] { new Direct(0, 0, config), new Direct(0, 0, config), new Direct(0, 0, config), new Direct(0, 0, config) });
+			//	}
+			//}
+
+			stopwatch.Stop();
+
+			var directs = new FastDirect.List();
+			directs.Add(new FastDirect(0, 0));
+			directs.Add(new FastDirect(0, 0));
+			directs.Add(new FastDirect(0, 0));
+			directs.Add(new FastDirect(0, 0));
+
+			Console.Out.WriteLine(stopwatch.ElapsedMilliseconds);
+
+			stopwatch = Stopwatch.StartNew();
+
+			for (int iter = 0; iter < 100000; iter++)
 			{
-				var clone = simulator.Clone();
-				//for (int ticks = 0; ticks < 10; ticks++)
+				var clone = fs;
+				for (int ticks = 0; ticks < 10; ticks++)
 				{
-					clone.Tick(new[] { new Direct(0, 0, config), new Direct(0, 0, config), new Direct(0, 0, config), new Direct(0, 0, config) });
+					clone.Tick(&gs, &directs, config);
 				}
 			}
 

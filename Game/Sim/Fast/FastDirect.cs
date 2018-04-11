@@ -9,21 +9,29 @@ namespace Game.Sim.Fast
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct FastDirect
 	{
-		public const int size = FastPoint.size + 2 * sizeof(bool);
+		public const int size = FastPoint.size + 2 * sizeof(int);
 
 		static FastDirect()
 		{
 			if (sizeof(FastDirect) != size)
-				throw new InvalidOperationException($"sizeof({nameof(FastDirect)}) != {size}");
+				throw new InvalidOperationException($"sizeof({nameof(FastDirect)})({sizeof(FastDirect)}) != {size}");
+		}
+
+		public FastDirect(double x, double y, bool split = false, bool eject = false)
+		{
+			target.x = x;
+			target.y = y;
+			this.split = split ? 1 : 0;
+			this.eject = eject ? 1 : 0;
 		}
 
 		public FastPoint target;
-		public bool split;
-		public bool eject;
+		public int split;
+		public int eject;
 
 		public override string ToString()
 		{
-			return $"{target}{(split ? ", SPLIT" : "")}{(eject ? ", EJECT" : "")}";
+			return $"{target}{(split == 1 ? ", SPLIT" : "")}{(eject == 1 ? ", EJECT" : "")}";
 		}
 
 		[StructLayout(LayoutKind.Sequential)]

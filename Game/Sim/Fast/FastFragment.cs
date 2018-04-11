@@ -11,12 +11,12 @@ namespace Game.Sim.Fast
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct FastFragment
 	{
-		public const int size = sizeof(double) * 6 + sizeof(int) * 2 + sizeof(bool);
+		public const int size = sizeof(double) * 6 + sizeof(int) * 4;
 
 		static FastFragment()
 		{
-			if (sizeof(FastVirus) != size)
-				throw new InvalidOperationException($"sizeof({nameof(FastFragment)}) != {size}");
+			if (sizeof(FastFragment) != size)
+				throw new InvalidOperationException($"sizeof({nameof(FastFragment)})({sizeof(FastFragment)}) != {size}");
 		}
 
 		public double x;
@@ -26,7 +26,7 @@ namespace Game.Sim.Fast
 		public double speed;
 		public double angle;
 		public int fuse_timer;
-		public bool isFast;
+		public int isFast;
 		public int score;
 
 		public FastFragment(Player player) : this()
@@ -38,18 +38,18 @@ namespace Game.Sim.Fast
 			angle = player.angle;
 			speed = player.speed;
 			fuse_timer = player.fuse_timer;
-			isFast = player.isFast;
+			isFast = player.isFast ? 1 : 0;
 		}
 
 		public override string ToString()
 		{
-			return $"{x},{y} => M:{mass}, R:{radius}, A:{angle}, S:{speed}, TTF:{fuse_timer}{(isFast ? ", FAST" : "")}, {nameof(score)}:{score}";
+			return $"{x},{y} => M:{mass}, R:{radius}, A:{angle}, S:{speed}, TTF:{fuse_timer}{(isFast == 1 ? ", FAST" : "")}, {nameof(score)}:{score}";
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void ApplyDirect(FastDirect* direct, Config config)
 		{
-			if (isFast)
+			if (isFast == 1)
 				return;
 
 			double speed_x = speed * Math.Cos(angle);
@@ -175,7 +175,7 @@ namespace Game.Sim.Fast
 				angle = speed_x >= 0 ? 0 : Math.PI;
 			}
 
-			if (isFast)
+			if (isFast == 1)
 			{
 				double max_speed = config.SPEED_FACTOR / Math.Sqrt(mass);
 				// если на этом тике не снизим скорость достаточно - летим дальше
@@ -187,7 +187,7 @@ namespace Game.Sim.Fast
 				{
 					// иначе выставляем максимальную скорость и выходим из режима полёта
 					speed = max_speed;
-					isFast = false;
+					isFast = 0;
 				}
 			}
 			if (fuse_timer > 0)
@@ -255,7 +255,7 @@ namespace Game.Sim.Fast
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void CollisionCalc(FastFragment* other)
 		{
-			if (isFast || other->isFast)
+			if (isFast == 1 || other->isFast == 1)
 			{ // do not collide splits
 				return;
 			}
@@ -393,7 +393,7 @@ namespace Game.Sim.Fast
 				mass = new_mass,
 				speed = Constants.SPLIT_START_SPEED,
 				angle = angle,
-				isFast = true,
+				isFast = 1,
 				fuse_timer = config.TICKS_TIL_FUSION
 			};
 			
@@ -475,10 +475,8 @@ namespace Game.Sim.Fast
 			radius = Mass2Radius(mass);
 
 			double new_speed = config.SPEED_FACTOR / Math.Sqrt(mass);
-			if (speed > new_speed && !isFast)
-			{
+			if (speed > new_speed && isFast == 0)
 				speed = new_speed;
-			}
 
 			if (x - radius < 0) x += radius - x;
 			if (y - radius < 0) y += radius - y;
@@ -505,7 +503,7 @@ namespace Game.Sim.Fast
 					y = y,
 					radius = new_radius,
 					mass = new_mass,
-					isFast = true,
+					isFast = 1,
 					speed = Constants.BURST_START_SPEED,
 					angle = burst_angle,
 					fuse_timer = config.TICKS_TIL_FUSION
@@ -514,7 +512,7 @@ namespace Game.Sim.Fast
 					fragments->Add(new_fragment);
 			}
 
-			isFast = true;
+			isFast = 1;
 			speed = Constants.BURST_START_SPEED;
 			angle = angle + Constants.BURST_ANGLE_SPECTRUM / 2;
 			mass = new_mass;

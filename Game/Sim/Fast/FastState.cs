@@ -138,7 +138,7 @@ namespace Game.Sim.Fast
 				var fragments = &that->fragments0;
 				for (var p = 0; p < directs->count; p++, direct++, fragments++)
 				{
-					if (double.IsNaN(direct->target.x) || direct->split || !direct->eject)
+					if (double.IsNaN(direct->target.x) || direct->split == 1 || direct->eject == 0)
 						continue;
 					var frag = (FastFragment*)fragments->data;
 					for (var i = 0; i < fragments->count; i++, frag++)
@@ -162,7 +162,7 @@ namespace Game.Sim.Fast
 				var fragments = &that->fragments0;
 				for (var p = 0; p < directs->count; p++, direct++, fragments++)
 				{
-					if (double.IsNaN(direct->target.x) || !direct->split)
+					if (double.IsNaN(direct->target.x) || direct->split == 0)
 						continue;
 					var frag = (FastFragment*)fragments->data;
 
