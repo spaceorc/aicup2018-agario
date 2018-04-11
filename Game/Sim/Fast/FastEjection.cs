@@ -23,7 +23,7 @@ namespace Game.Sim.Fast
 		{
 			point.x = ejection.x;
 			point.y = ejection.y;
-			point.angle = ejection.angle;
+			point.SetAngle(ejection.angle);
 			point.speed = ejection.speed;
 			player = ejection.player;
 		}

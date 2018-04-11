@@ -11,7 +11,7 @@ namespace Game.Sim.Fast
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct FastFragment
 	{
-		public const int size = sizeof(double) * 6 + sizeof(int) * 4;
+		public const int size = sizeof(double) * 7 + sizeof(int) * 4;
 
 		static FastFragment()
 		{
@@ -24,7 +24,8 @@ namespace Game.Sim.Fast
 		public double mass;
 		public double radius;
 		public double speed;
-		public double angle;
+		public double ndx;
+		public double ndy;
 		public int fuse_timer;
 		public int isFast;
 		public int score;
@@ -35,7 +36,8 @@ namespace Game.Sim.Fast
 			y = player.y;
 			radius = player.radius;
 			mass = player.mass;
-			angle = player.angle;
+			ndx = Math.Cos(player.angle);
+			ndy = Math.Sin(player.angle);
 			speed = player.speed;
 			fuse_timer = player.fuse_timer;
 			isFast = player.isFast ? 1 : 0;
@@ -43,7 +45,7 @@ namespace Game.Sim.Fast
 
 		public override string ToString()
 		{
-			return $"{x},{y} => M:{mass}, R:{radius}, A:{angle}, S:{speed}, TTF:{fuse_timer}{(isFast == 1 ? ", FAST" : "")}, {nameof(score)}:{score}";
+			return $"{x},{y} => M:{mass}, R:{radius}, A:{Math.Atan2(ndy, ndx)}, S:{speed}, TTF:{fuse_timer}{(isFast == 1 ? ", FAST" : "")}, {nameof(score)}:{score}";
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -52,8 +54,8 @@ namespace Game.Sim.Fast
 			if (isFast == 1)
 				return;
 
-			double speed_x = speed * Math.Cos(angle);
-			double speed_y = speed * Math.Sin(angle);
+			double speed_x = speed * ndx;
+			double speed_y = speed * ndy;
 			double max_speed = config.SPEED_FACTOR / Math.Sqrt(mass);
 
 			double dy = direct->target.y - y, dx = direct->target.x - x;
@@ -65,9 +67,11 @@ namespace Game.Sim.Fast
 			speed_x += (nx * max_speed - speed_x) * inertion / mass;
 			speed_y += (ny * max_speed - speed_y) * inertion / mass;
 
-			angle = Math.Atan2(speed_y, speed_x);
 
 			double new_speed = Math.Sqrt(speed_x * speed_x + speed_y * speed_y);
+			ndx = speed_x / new_speed;
+			ndy = speed_y / new_speed;
+
 			if (new_speed > max_speed)
 				new_speed = max_speed;
 
@@ -145,8 +149,8 @@ namespace Game.Sim.Fast
 			double rB = x + radius, lB = x - radius;
 			double dB = y + radius, uB = y - radius;
 
-			double dx = speed * Math.Cos(angle);
-			double dy = speed * Math.Sin(angle);
+			double dx = speed * ndx;
+			double dy = speed * ndy;
 
 			if (rB + dx < config.GAME_WIDTH && lB + dx > 0)
 			{
@@ -157,9 +161,10 @@ namespace Game.Sim.Fast
 				// долетаем до стенки
 				x = Math.Max(radius, Math.Min(config.GAME_WIDTH - radius, x + dx));
 				// зануляем проекцию скорости по dx
-				double speed_y = speed * Math.Sin(angle);
+				double speed_y = speed * ndy;
 				speed = Math.Abs(speed_y);
-				angle = speed_y >= 0 ? Math.PI / 2 : -Math.PI / 2;
+				ndx = 0;
+				ndy = speed_y >= 0 ? 1 : -1;
 			}
 			if (dB + dy < config.GAME_HEIGHT && uB + dy > 0)
 			{
@@ -170,9 +175,10 @@ namespace Game.Sim.Fast
 				// долетаем до стенки
 				y = Math.Max(radius, Math.Min(config.GAME_HEIGHT - radius, y + dy));
 				// зануляем проекцию скорости по dy
-				double speed_x = speed * Math.Cos(angle);
+				double speed_x = speed * ndx;
 				speed = Math.Abs(speed_x);
-				angle = speed_x >= 0 ? 0 : Math.PI;
+				ndy = 0;
+				ndx = speed_x >= 0 ? 1 : -1;
 			}
 
 			if (isFast == 1)
@@ -286,24 +292,26 @@ namespace Game.Sim.Fast
 			{
 				double currPart = other->mass / sumMass; // more influence on us if other bigger and vice versa
 
-				double dx = speed * Math.Cos(angle);
-				double dy = speed * Math.Sin(angle);
+				double dx = speed * ndx;
+				double dy = speed * ndy;
 				dx += collisionForce * currPart * collisionVectorX;
 				dy += collisionForce * currPart * collisionVectorY;
 				speed = Math.Sqrt(dx * dx + dy * dy);
-				angle = Math.Atan2(dy, dx);
+				ndx = dx / speed;
+				ndy = dy / speed;
 			}
 
 			// calc influence on other
 			{
 				double otherPart = mass / sumMass;
 
-				double dx = other->speed * Math.Cos(other->angle);
-				double dy = other->speed * Math.Sin(other->angle);
+				double dx = other->speed * other->ndx;
+				double dy = other->speed * other->ndy;
 				dx -= collisionForce * otherPart * collisionVectorX;
 				dy -= collisionForce * otherPart * collisionVectorY;
 				other->speed = Math.Sqrt(dx * dx + dy * dy);
-				other->angle = Math.Atan2(dy, dx);
+				other->ndx = dx / other->speed;
+				other->ndy = dy / other->speed;
 			}
 		}
 
@@ -392,7 +400,8 @@ namespace Game.Sim.Fast
 				radius = new_radius,
 				mass = new_mass,
 				speed = Constants.SPLIT_START_SPEED,
-				angle = angle,
+				ndx = ndx,
+				ndy = ndy,
 				isFast = 1,
 				fuse_timer = config.TICKS_TIL_FUSION
 			};
@@ -426,10 +435,10 @@ namespace Game.Sim.Fast
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void Fusion(FastFragment* frag)
 		{
-			double fragDX = frag->speed * Math.Cos(frag->angle);
-			double fragDY = frag->speed * Math.Sin(frag->angle);
-			double dX = speed * Math.Cos(angle);
-			double dY = speed * Math.Sin(angle);
+			double fragDX = frag->speed * frag->ndx;
+			double fragDY = frag->speed * frag->ndy;
+			double dX = speed * ndx;
+			double dY = speed * ndy;
 			double sumMass = mass + frag->mass;
 
 			double fragInfluence = frag->mass / sumMass;
@@ -444,8 +453,9 @@ namespace Game.Sim.Fast
 			dY = dY * currInfluence + fragDY * fragInfluence;
 
 			// new angle and speed, based on vectors
-			angle = Math.Atan2(dY, dX);
 			speed = Math.Sqrt(dX * dX + dY * dY);
+			ndx = dX / speed;
+			ndy = dY / speed;
 
 			mass += frag->mass;
 		}
@@ -494,6 +504,7 @@ namespace Game.Sim.Fast
 			double new_mass = mass / (new_frags_cnt + 1);
 			double new_radius = Mass2Radius(new_mass);
 
+			var angle = Math.Atan2(ndy, ndx);
 			for (int I = 0; I < new_frags_cnt; I++)
 			{
 				double burst_angle = angle - Constants.BURST_ANGLE_SPECTRUM / 2 + I * Constants.BURST_ANGLE_SPECTRUM / new_frags_cnt;
@@ -505,7 +516,8 @@ namespace Game.Sim.Fast
 					mass = new_mass,
 					isFast = 1,
 					speed = Constants.BURST_START_SPEED,
-					angle = burst_angle,
+					ndx = Math.Cos(burst_angle),
+					ndy = Math.Sin(burst_angle),
 					fuse_timer = config.TICKS_TIL_FUSION
 				};
 				if (fragments->count < List.capacity)
@@ -515,6 +527,8 @@ namespace Game.Sim.Fast
 			isFast = 1;
 			speed = Constants.BURST_START_SPEED;
 			angle = angle + Constants.BURST_ANGLE_SPECTRUM / 2;
+			ndx = Math.Cos(angle);
+			ndy = Math.Sin(angle);
 			mass = new_mass;
 			radius = new_radius;
 			fuse_timer = config.TICKS_TIL_FUSION;
@@ -525,17 +539,18 @@ namespace Game.Sim.Fast
 		{
 			double dist = Distance(virus);
 			double dy = y - virus->point.y, dx = x - virus->point.x;
-			double new_angle = 0.0;
-
+			
 			if (dist > 0)
 			{
-				new_angle = Math.Asin(dy / dist);
-				if (dx < 0)
-				{
-					new_angle = Math.PI - new_angle;
-				}
+				ndx = dx / dist;
+				ndy = dy / dist;
 			}
-			angle = new_angle;
+			else
+			{
+				ndx = 1;
+				ndy = 0;
+			}
+			
 			double max_speed = config.SPEED_FACTOR / Math.Sqrt(mass);
 			if (speed < max_speed)
 			{
@@ -548,8 +563,8 @@ namespace Game.Sim.Fast
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public FastEjection EjectNow(int player)
 		{
-			double ex = x + Math.Cos(angle) * (radius + 1);
-			double ey = y + Math.Sin(angle) * (radius + 1);
+			double ex = x + ndx * (radius + 1);
+			double ey = y + ndy * (radius + 1);
 
 			var new_eject = new FastEjection
 			{
@@ -558,7 +573,8 @@ namespace Game.Sim.Fast
 					x = ex,
 					y = ey,
 					speed = Constants.EJECT_START_SPEED,
-					angle = angle
+					ndx = ndx,
+					ndy = ndy
 				},
 				player = player
 			};

@@ -9,21 +9,28 @@ namespace Game.Sim.Fast
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct MovingPoint
 	{
-		public const int size = sizeof(double) * 4;
+		public const int size = sizeof(double) * 5;
 
 		public double x;
 		public double y;
-		public double angle;
+		public double ndx;
+		public double ndy;
 		public double speed;
-		
+
+		public void SetAngle(double angle)
+		{
+			ndx = Math.Cos(angle);
+			ndy = Math.Sin(angle);
+		}
+
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void Move(Config config, double radius)
 		{
 			if (speed == 0)
 				return;
 
-			var dx = speed * Math.Cos(angle);
-			var dy = speed * Math.Sin(angle);
+			var dx = speed * ndx;
+			var dy = speed * ndy;
 
 			x += dx;
 			y += dy;
@@ -40,7 +47,7 @@ namespace Game.Sim.Fast
 
 		public override string ToString()
 		{
-			return $"{x},{y} => A:{angle}, S:{speed}";
+			return $"{x},{y} => A:{Math.Atan2(ndy, ndx)}, S:{speed}";
 		}
 	}
 }

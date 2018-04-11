@@ -474,6 +474,11 @@ namespace Game.Types
 			};
 		}
 
+		public override string ToString()
+		{
+			return $"{base.ToString()}, {nameof(fuse_timer)}: {fuse_timer}{(isFast ? ", FAST" : "")}, {nameof(speed)}: {speed}, {nameof(angle)}: {angle}";
+		}
+
 		public TurnInput.MineData ToMineData()
 		{
 			return new TurnInput.MineData

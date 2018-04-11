@@ -11,33 +11,35 @@ namespace Game.Sim.Fast
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct FastVirus
 	{
-		public const int size = MovingPoint.size + sizeof(double) * 3;
+		public const int size = MovingPoint.size + sizeof(double) * 4;
 
 		static FastVirus()
 		{
 			if (sizeof(FastVirus) != size)
-				throw new InvalidOperationException($"sizeof({nameof(FastVirus)}) != {size}");
+				throw new InvalidOperationException($"sizeof({nameof(FastVirus)})({sizeof(FastVirus)}) != {size}");
 		}
 
 		public FastVirus(Virus virus) : this()
 		{
 			point.x = virus.x;
 			point.y = virus.y;
-			point.angle = virus.angle;
+			point.SetAngle(virus.angle);
 			point.speed = virus.speed;
 			radius = virus.radius;
 			mass = virus.mass;
-			splitAngle = virus.splitAngle;
+			splitNdx = Math.Cos(virus.splitAngle);
+			splitNdy = Math.Sin(virus.splitAngle);
 		}
 
 		public MovingPoint point;
 		public double mass;
 		public double radius;
-		public double splitAngle;
+		public double splitNdx;
+		public double splitNdy;
 
 		public override string ToString()
 		{
-			return $"{point}, M:{mass}, R:{radius}, {nameof(splitAngle)}:{splitAngle}";
+			return $"{point}, M:{mass}, R:{radius}, splitAngle:{Math.Atan2(splitNdy, splitNdx)}";
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
@@ -122,7 +124,8 @@ namespace Game.Sim.Fast
 		public void Eat(FastEjection* eject)
 		{
 			mass += Constants.EJECT_MASS;
-			splitAngle = eject->point.angle;
+			splitNdx = eject->point.ndx;
+			splitNdy = eject->point.ndy;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -146,7 +149,7 @@ namespace Game.Sim.Fast
 		{
 			var newVirus = new FastVirus
 			{
-				point = {x = point.x, y = point.y, angle = splitAngle, speed = Constants.VIRUS_SPLIT_SPEED},
+				point = {x = point.x, y = point.y, ndx = splitNdx, ndy = splitNdy, speed = Constants.VIRUS_SPLIT_SPEED},
 				mass = Constants.VIRUS_MASS
 			};
 			mass = Constants.VIRUS_MASS;
