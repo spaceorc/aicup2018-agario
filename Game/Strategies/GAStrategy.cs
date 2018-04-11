@@ -13,6 +13,9 @@ namespace Game.Strategies
 			ga = new GA(config, random);
 		}
 
+		public static void Register()
+		{
+		}
 
 		protected override Direct GetDirect(Simulator sim)
 		{

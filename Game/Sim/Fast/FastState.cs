@@ -79,7 +79,8 @@ namespace Game.Sim.Fast
 			UpdateScores();
 			SplitViruses(config);
 
-			UpdateNextCheckpoint(globalState);
+			if (UpdateNextCheckpoint(globalState))
+				checkpointsTaken++;
 
 			tick++;
 		}
@@ -514,7 +515,7 @@ namespace Game.Sim.Fast
 			}
 		}
 
-		private void UpdateNextCheckpoint(FastGlobalState* globalState)
+		public bool UpdateNextCheckpoint(FastGlobalState* globalState)
 		{
 			fixed (FastState* that = &this)
 			{
@@ -526,10 +527,12 @@ namespace Game.Sim.Fast
 					if (frag->QDistance(checkpoints + that->nextCheckpoint) < 4 * 4 * frag->radius * frag->radius)
 					{
 						that->nextCheckpoint = (that->nextCheckpoint + 1) % globalState->checkpoints.count;
-						that->checkpointsTaken++;
+						return true;
 					}
 				}
 			}
+
+			return false;
 		}
 	}
 }

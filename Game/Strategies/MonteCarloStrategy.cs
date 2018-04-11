@@ -58,6 +58,10 @@ namespace Game.Strategies
 			return bestDirect;
 		}
 
+		public static void Register()
+		{
+		}
+
 		private double Evaluate(Simulator sim)
 		{
 			if (sim.players[0].Count == 0)

@@ -3,6 +3,8 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using Game.Protocol;
+using Game.Types;
 
 namespace Game.Sim.Fast
 {
@@ -29,9 +31,28 @@ namespace Game.Sim.Fast
 		public int split;
 		public int eject;
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Limit(Config config)
+		{
+			if (target.x > config.GAME_WIDTH)
+				target.x = config.GAME_WIDTH;
+			else if (target.x < 0)
+				target.x = 0;
+
+			if (target.y > config.GAME_HEIGHT)
+				target.y = config.GAME_HEIGHT;
+			else if (target.y < 0)
+				target.y = 0;
+		}
+
 		public override string ToString()
 		{
 			return $"{target}{(split == 1 ? ", SPLIT" : "")}{(eject == 1 ? ", EJECT" : "")}";
+		}
+
+		public Direct ToDirect(Config config)
+		{
+			return new Direct(target.x, target.y, config, split == 1, eject == 1);
 		}
 
 		[StructLayout(LayoutKind.Sequential)]

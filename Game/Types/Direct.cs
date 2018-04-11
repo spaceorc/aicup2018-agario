@@ -31,21 +31,14 @@ namespace Game.Types
 		public void Limit()
 		{
 			if (x > config.GAME_WIDTH)
-			{
 				x = config.GAME_WIDTH;
-			}
 			else if (x < 0)
-			{
 				x = 0;
-			}
+
 			if (y > config.GAME_HEIGHT)
-			{
 				y = config.GAME_HEIGHT;
-			}
 			else if (y < 0)
-			{
 				y = 0;
-			}
 		}
 
 		public TurnOutput ToOutput()

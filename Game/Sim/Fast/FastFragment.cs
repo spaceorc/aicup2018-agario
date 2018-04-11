@@ -316,12 +316,24 @@ namespace Game.Sim.Fast
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public bool Eatable(FastFragment* frag)
+		{
+			return mass > frag->mass * Constants.MASS_EAT_FACTOR;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public bool EatableBySplit(FastFragment* frag)
+		{
+			return mass / 2 > frag->mass * Constants.MASS_EAT_FACTOR;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public double CanEat(FastFragment* frag)
 		{
-			if (mass > frag->mass * Constants.MASS_EAT_FACTOR)
+			if (Eatable(frag))
 			{
 				double dist = Distance(frag);
-				if (dist - frag->radius + Constants.EJECT_RADIUS * 2 * Constants.DIAM_EAT_FACTOR < radius)
+				if (dist - frag->radius + frag->radius * 2 * Constants.DIAM_EAT_FACTOR < radius)
 					return radius - dist;
 			}
 

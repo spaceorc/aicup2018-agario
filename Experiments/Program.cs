@@ -11,6 +11,7 @@ using Game.Helpers;
 using Game.Mech;
 using Game.Protocol;
 using Game.Sim;
+using Game.Sim.Fast;
 using Game.Strategies;
 using Game.Types;
 using Newtonsoft.Json;
@@ -161,14 +162,14 @@ namespace Experiments
 			//Console.Out.WriteLine(JsonConvert.SerializeObject(turnOutput2));
 		}
 
-		public static void Main()
+		public static void Main12312312()
 		{
 			var config = JsonConvert.DeserializeObject<Config>(
 				@"{""FOOD_MASS"":1.1699651787931546,""GAME_HEIGHT"":990,""GAME_TICKS"":7500,""GAME_WIDTH"":990,""INERTION_FACTOR"":18.311331992550009,""MAX_FRAGS_CNT"":4,""SPEED_FACTOR"":61.964198190568723,""TICKS_TIL_FUSION"":428,""VIRUS_RADIUS"":27.671011120486231,""VIRUS_SPLIT_MASS"":82.838148942917172,""VISCOSITY"":0.1961202661671938}");
 			var mechanic = new Mechanic(config, new List<PlayerStrategy>
 			{
 				new PlayerStrategy(config, c => new SimpleStrategy(c)),
-				new PlayerStrategy(config, c => new GAStrategy(c)),
+				new PlayerStrategy(config, c => new FastAiStrategy(c, new SimpleFastAi(c))),
 				new PlayerStrategy(config, c => new NearestFoodStrategy(c, true)),
 				new PlayerStrategy(config, c => new NearestFoodStrategy(c, false)),
 			});
@@ -179,7 +180,7 @@ namespace Experiments
 			}
 		}
 
-		public static void Main2()
+		public static void Main()
 		{
 			const int parallelizm = 4;
 			var strategies = StrategiesRegistry.Names;
