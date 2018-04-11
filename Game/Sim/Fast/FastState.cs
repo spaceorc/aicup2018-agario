@@ -73,7 +73,7 @@ namespace Game.Sim.Fast
 				ShrinkPlayers();
 
 			EatAll(config);
-			FusePlayers();
+			FusePlayers(config);
 			BurstOnViruses();
 
 			UpdatePlayersRadius();
@@ -326,6 +326,8 @@ namespace Game.Sim.Fast
 						deeper_dist = double.NegativeInfinity;
 						for (var p = 0; p < 4; p++, fragments++)
 						{
+							if (p == eject->player)
+								continue;
 							var frag = (FastFragment*)fragments->data;
 							for (var i = 0; i < fragments->count; i++, frag++)
 							{
@@ -358,6 +360,59 @@ namespace Game.Sim.Fast
 			EatFood(config);;
 			EatEjections();
 			EatFragments();
+		}
+
+		private void FusePlayers(Config config)
+		{
+			fixed (FastState* that = &this)
+			{
+				var fragments = &that->fragments0;
+				for (var p = 0; p < 4; p++, fragments++)
+				{
+					if (fragments->count == 0)
+						continue;
+
+					bool new_fusion_check = true; // проверим всех. Если слияние произошло - перепроверим ещё разок, чтобы все могли слиться в один тик
+					while (new_fusion_check)
+					{
+						new_fusion_check = false;
+
+						var frag = (FastFragment*) fragments->data;
+						for (var i = 0; i < fragments->count - 1; i++, frag++)
+						{
+							var next = frag + 1;
+							var tk = (byte) (i + 1);
+							var tnext = next;
+							for (var k = i + 1; k < fragments->count; k++, next++)
+							{
+								if (frag->CanFuse(next))
+								{
+									frag->Fusion(next);
+									new_fusion_check = true;
+								}
+								else
+								{
+									if (tk != k)
+										*tnext = *next;
+									tk++;
+									tnext++;
+								}
+							}
+
+							fragments->count = tk;
+						}
+
+						if (new_fusion_check)
+						{
+							frag = (FastFragment*)fragments->data;
+							for (var i = 0; i < fragments->count - 1; i++, frag++)
+								frag->UpdateByMass(config);
+						}
+					}
+
+					fragments->Sort();
+				}
+			}
 		}
 	}
 }

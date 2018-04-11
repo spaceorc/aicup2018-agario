@@ -58,8 +58,8 @@ namespace Game.Sim.Fast
 
 			double dy = direct->target.y - y, dx = direct->target.x - x;
 			double dist = Math.Sqrt(dx * dx + dy * dy);
-			double ny = (dist > 0) ? (dy / dist) : 0;
-			double nx = (dist > 0) ? (dx / dist) : 0;
+			double ny = dist > 0 ? dy / dist : 0;
+			double nx = dist > 0 ? dx / dist : 0;
 			double inertion = config.INERTION_FACTOR;
 
 			speed_x += (nx * max_speed - speed_x) * inertion / mass;
@@ -159,7 +159,7 @@ namespace Game.Sim.Fast
 				// зануляем проекцию скорости по dx
 				double speed_y = speed * Math.Sin(angle);
 				speed = Math.Abs(speed_y);
-				angle = (speed_y >= 0) ? Math.PI / 2 : -Math.PI / 2;
+				angle = speed_y >= 0 ? Math.PI / 2 : -Math.PI / 2;
 			}
 			if (dB + dy < config.GAME_HEIGHT && uB + dy > 0)
 			{
@@ -172,7 +172,7 @@ namespace Game.Sim.Fast
 				// зануляем проекцию скорости по dy
 				double speed_x = speed * Math.Cos(angle);
 				speed = Math.Abs(speed_x);
-				angle = (speed_x >= 0) ? 0 : Math.PI;
+				angle = speed_x >= 0 ? 0 : Math.PI;
 			}
 
 			if (isFast)
@@ -299,7 +299,7 @@ namespace Game.Sim.Fast
 			if (mass > frag->mass * Constants.MASS_EAT_FACTOR)
 			{
 				double dist = Distance(frag);
-				if (dist - frag->radius + (Constants.EJECT_RADIUS * 2) * Constants.DIAM_EAT_FACTOR < radius)
+				if (dist - frag->radius + Constants.EJECT_RADIUS * 2 * Constants.DIAM_EAT_FACTOR < radius)
 					return radius - dist;
 			}
 
@@ -312,7 +312,7 @@ namespace Game.Sim.Fast
 			if (mass > config.FOOD_MASS * Constants.MASS_EAT_FACTOR)
 			{
 				double dist = Distance(food);
-				if (dist - Constants.FOOD_RADIUS + (Constants.FOOD_RADIUS * 2) * Constants.DIAM_EAT_FACTOR < radius)
+				if (dist - Constants.FOOD_RADIUS + Constants.FOOD_RADIUS * 2 * Constants.DIAM_EAT_FACTOR < radius)
 					return radius - dist;
 			}
 
@@ -325,7 +325,7 @@ namespace Game.Sim.Fast
 			if (mass > Constants.EJECT_MASS * Constants.MASS_EAT_FACTOR)
 			{
 				double dist = Distance(eject);
-				if (dist - Constants.EJECT_RADIUS + (Constants.EJECT_RADIUS * 2) * Constants.DIAM_EAT_FACTOR < radius)
+				if (dist - Constants.EJECT_RADIUS + Constants.EJECT_RADIUS * 2 * Constants.DIAM_EAT_FACTOR < radius)
 					return radius - dist;
 			}
 
@@ -355,7 +355,7 @@ namespace Game.Sim.Fast
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void ShrinkNow()
 		{
-			mass -= ((mass - Constants.MIN_SHRINK_MASS) * Constants.SHRINK_FACTOR);
+			mass -= (mass - Constants.MIN_SHRINK_MASS) * Constants.SHRINK_FACTOR;
 			radius = Mass2Radius(mass);
 		}
 
@@ -401,9 +401,61 @@ namespace Game.Sim.Fast
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public bool CanFuse(FastFragment* frag)
+		{
+			double dist = Distance(frag);
+			double nR = radius + frag->radius;
+			return fuse_timer == 0 && frag->fuse_timer == 0 && dist <= nR;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Fusion(FastFragment* frag)
+		{
+			double fragDX = frag->speed * Math.Cos(frag->angle);
+			double fragDY = frag->speed * Math.Sin(frag->angle);
+			double dX = speed * Math.Cos(angle);
+			double dY = speed * Math.Sin(angle);
+			double sumMass = mass + frag->mass;
+
+			double fragInfluence = frag->mass / sumMass;
+			double currInfluence = mass / sumMass;
+
+			// center with both parts influence
+			x = x * currInfluence + frag->x * fragInfluence;
+			y = y * currInfluence + frag->y * fragInfluence;
+
+			// new move vector with both parts influence
+			dX = dX * currInfluence + fragDX * fragInfluence;
+			dY = dY * currInfluence + fragDY * fragInfluence;
+
+			// new angle and speed, based on vectors
+			angle = Math.Atan2(dY, dX);
+			speed = Math.Sqrt(dX * dX + dY * dY);
+
+			mass += frag->mass;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private static int RestFragmentsCount(int existingFragmentsCount, Config config)
 		{
 			return config.MAX_FRAGS_CNT - existingFragmentsCount;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void UpdateByMass(Config config)
+		{
+			radius = Mass2Radius(mass);
+
+			double new_speed = config.SPEED_FACTOR / Math.Sqrt(mass);
+			if (speed > new_speed && !isFast)
+			{
+				speed = new_speed;
+			}
+
+			if (x - radius < 0) x += radius - x;
+			if (y - radius < 0) y += radius - y;
+			if (x + radius > config.GAME_WIDTH) x -= radius + x - config.GAME_WIDTH;
+			if (y + radius > config.GAME_HEIGHT) y -= radius + y - config.GAME_HEIGHT;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
