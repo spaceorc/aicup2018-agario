@@ -197,6 +197,34 @@ namespace Game.Sim.Fast
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public double QDistance(FastEjection* other)
+		{
+			var dx = x - other->point.x;
+			var dy = y - other->point.y;
+			return dx * dx + dy * dy;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public double Distance(FastEjection* other)
+		{
+			return Math.Sqrt(QDistance(other));
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public double QDistance(FastPoint* other)
+		{
+			var dx = x - other->x;
+			var dy = y - other->y;
+			return dx * dx + dy * dy;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public double Distance(FastPoint* other)
+		{
+			return Math.Sqrt(QDistance(other));
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public double QDistance(FastFragment* other)
 		{
 			var dx = x - other->x;
@@ -263,6 +291,65 @@ namespace Game.Sim.Fast
 				other->speed = Math.Sqrt(dx * dx + dy * dy);
 				other->angle = Math.Atan2(dy, dx);
 			}
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public double CanEat(FastFragment* frag)
+		{
+			if (mass > frag->mass * Constants.MASS_EAT_FACTOR)
+			{
+				double dist = Distance(frag);
+				if (dist - frag->radius + (Constants.EJECT_RADIUS * 2) * Constants.DIAM_EAT_FACTOR < radius)
+					return radius - dist;
+			}
+
+			return double.NegativeInfinity;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public double CanEat(FastPoint* food, Config config)
+		{
+			if (mass > config.FOOD_MASS * Constants.MASS_EAT_FACTOR)
+			{
+				double dist = Distance(food);
+				if (dist - Constants.FOOD_RADIUS + (Constants.FOOD_RADIUS * 2) * Constants.DIAM_EAT_FACTOR < radius)
+					return radius - dist;
+			}
+
+			return double.NegativeInfinity;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public double CanEat(FastEjection* eject)
+		{
+			if (mass > Constants.EJECT_MASS * Constants.MASS_EAT_FACTOR)
+			{
+				double dist = Distance(eject);
+				if (dist - Constants.EJECT_RADIUS + (Constants.EJECT_RADIUS * 2) * Constants.DIAM_EAT_FACTOR < radius)
+					return radius - dist;
+			}
+
+			return double.NegativeInfinity;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Eat(FastPoint* food, Config config)
+		{
+			mass += config.FOOD_MASS;
+			score += Constants.SCORE_FOR_FOOD;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Eat(FastEjection* eject)
+		{
+			mass += Constants.EJECT_MASS;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Eat(FastFragment* frag, bool isLast)
+		{
+			mass += frag->mass;
+			score += !isLast ? Constants.SCORE_FOR_PLAYER : Constants.SCORE_FOR_LAST;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

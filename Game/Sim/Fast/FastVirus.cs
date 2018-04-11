@@ -77,5 +77,38 @@ namespace Game.Sim.Fast
 		{
 			point.Move(config, radius);
 		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public double QDistance(FastEjection* other)
+		{
+			var dx = point.x - other->point.x;
+			var dy = point.y - other->point.y;
+			return dx * dx + dy * dy;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public double Distance(FastEjection* other)
+		{
+			return Math.Sqrt(QDistance(other));
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public double CanEat(FastEjection* eject)
+		{
+			if (mass > Constants.EJECT_MASS * Constants.MASS_EAT_FACTOR)
+			{
+				var dist = Distance(eject);
+				if (dist - Constants.EJECT_RADIUS + (Constants.EJECT_RADIUS * 2) * Constants.DIAM_EAT_FACTOR < radius)
+					return radius - dist;
+			}
+			return double.NegativeInfinity;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Eat(FastEjection* eject)
+		{
+			mass += Constants.EJECT_MASS;
+			splitAngle = eject->point.angle;
+		}
 	}
 }

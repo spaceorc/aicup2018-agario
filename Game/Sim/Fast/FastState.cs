@@ -72,7 +72,7 @@ namespace Game.Sim.Fast
 			if (tick % Constants.SHRINK_EVERY_TICK == 0)
 				ShrinkPlayers();
 
-			EatAll();
+			EatAll(config);
 			FusePlayers();
 			BurstOnViruses();
 
@@ -203,6 +203,161 @@ namespace Game.Sim.Fast
 					}
 				}
 			}
+		}
+
+		private void EatFood(Config config)
+		{
+			fixed (FastState* that = &this)
+			{
+				var food = (FastPoint*)that->foods.data;
+				byte tf = 0;
+				var tfood = food;
+				for (var f = 0; f < that->foods.count; f++, food++)
+				{
+					var fragments = &that->fragments0;
+					FastFragment* eater = null;
+					var deeper_dist = double.NegativeInfinity;
+					for (var p = 0; p < 4; p++, fragments++)
+					{
+						var frag = (FastFragment*)fragments->data;
+						for (var i = 0; i < fragments->count; i++, frag++)
+						{
+							var qdist = frag->CanEat(food, config);
+							if (qdist > deeper_dist)
+							{
+								eater = frag;
+								deeper_dist = qdist;
+							}
+						}
+					}
+
+					if (eater != null)
+						eater->Eat(food, config);
+					else
+					{
+						if (tf != f)
+							*tfood = *food;
+						tf++;
+						tfood++;
+					}
+				}
+				that->foods.count = tf;
+			}
+		}
+
+		private void EatFragments()
+		{
+			fixed (FastState* that = &this)
+			{
+				var ffragments = &that->fragments0;
+				for (var fp = 0; fp < 4; fp++, ffragments++)
+				{
+					var ffrag = (FastFragment*)ffragments->data;
+					byte tf = 0;
+					var tffrag = ffrag;
+					for (var fi = 0; fi < ffragments->count; fi++, ffrag++)
+					{
+						var fragments = &that->fragments0;
+						FastFragment* eater = null;
+						var deeper_dist = double.NegativeInfinity;
+						for (var p = 0; p < 4; p++, fragments++)
+						{
+							if (p == fp)
+								continue;
+							var frag = (FastFragment*)fragments->data;
+							for (var i = 0; i < fragments->count; i++, frag++)
+							{
+								var qdist = frag->CanEat(ffrag);
+								if (qdist > deeper_dist)
+								{
+									eater = frag;
+									deeper_dist = qdist;
+								}
+							}
+						}
+
+						if (eater != null)
+						{
+							var isLast = fi == ffragments->count - 1 && tf == 0;
+							eater->Eat(ffrag, isLast);
+						}
+						else
+						{
+							if (tf != fi)
+								*tffrag = *ffrag;
+							tf++;
+							tffrag++;
+						}
+					}
+
+					ffragments->count = tf;
+				}
+			}
+		}
+
+		private void EatEjections()
+		{
+			fixed (FastState* that = &this)
+			{
+				var eject = (FastEjection*)that->ejections.data;
+				byte te = 0;
+				var teject = eject;
+				for (var e = 0; e < that->ejections.count; e++, eject++)
+				{
+					var virus = (FastVirus*)that->viruses.data;
+					FastVirus* eaterVirus = null;
+					var deeper_dist = double.NegativeInfinity;
+					for (int i = 0; i < that->viruses.count; i++, virus++)
+					{
+						var qdist = virus->CanEat(eject);
+						if (qdist > deeper_dist)
+						{
+							eaterVirus = virus;
+							deeper_dist = qdist;
+						}
+					}
+
+					if (eaterVirus != null)
+						eaterVirus->Eat(eject);
+					else
+					{
+						var fragments = &that->fragments0;
+						FastFragment* eaterFrag = null;
+						deeper_dist = double.NegativeInfinity;
+						for (var p = 0; p < 4; p++, fragments++)
+						{
+							var frag = (FastFragment*)fragments->data;
+							for (var i = 0; i < fragments->count; i++, frag++)
+							{
+								var qdist = frag->CanEat(eject);
+								if (qdist > deeper_dist)
+								{
+									eaterFrag = frag;
+									deeper_dist = qdist;
+								}
+							}
+						}
+
+						if (eaterFrag != null)
+							eaterFrag->Eat(eject);
+						else
+						{
+							if (te != e)
+								*teject = *eject;
+							te++;
+							teject++;
+						}
+					}
+				}
+				that->ejections.count = te;
+			}
+		}
+
+		private void EatAll(Config config)
+		{
+			EatFood(config);;
+			EatEjections();
+			EatFragments();
 		}
 	}
 }
