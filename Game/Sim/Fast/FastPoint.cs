@@ -33,6 +33,32 @@ namespace Game.Sim.Fast
 
 		public override string ToString() => $"{x},{y}";
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public double QDistance(FastPoint* other)
+		{
+			var dx = x - other->x;
+			var dy = y - other->y;
+			return dx * dx + dy * dy;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public double Distance(FastPoint* other)
+		{
+			return Math.Sqrt(QDistance(other));
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public double QDistance(FastPoint other)
+		{
+			return QDistance(&other);
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public double Distance(FastPoint other)
+		{
+			return Math.Sqrt(QDistance(other));
+		}
+
 		[StructLayout(LayoutKind.Sequential)]
 		public struct List
 		{
