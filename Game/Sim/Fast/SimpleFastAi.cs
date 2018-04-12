@@ -1,5 +1,4 @@
-﻿using System;
-using Game.Protocol;
+﻿using Game.Protocol;
 
 namespace Game.Sim.Fast
 {
@@ -20,10 +19,10 @@ namespace Game.Sim.Fast
 			FastFragment* awayTarget = null;
 			FastFragment* source = null;
 			var frag = (FastFragment*)fragments->data;
-			for (int i = 0; i < fragments->count; i++, frag++)
+			for (var i = 0; i < fragments->count; i++, frag++)
 			{
 				var food = (FastPoint*)state->foods.data;
-				for (int f = 0; f < state->foods.count; f++, food++)
+				for (var f = 0; f < state->foods.count; f++, food++)
 				{
 					if (food->x < frag->radius && food->y < frag->radius)
 					{
@@ -56,12 +55,12 @@ namespace Game.Sim.Fast
 				}
 
 				var efragments = &state->fragments0;
-				for (int e = 0; e < 4; e++, efragments++)
+				for (var e = 0; e < 4; e++, efragments++)
 				{
 					if (e == player)
 						continue;
 					var efrag = (FastFragment*)efragments->data;
-					for (int ef = 0; ef < efragments->count; ef++, efrag++)
+					for (var ef = 0; ef < efragments->count; ef++, efrag++)
 					{
 						var qdist = frag->QDistance(efrag);
 						if (qdist < minDist)
@@ -87,9 +86,8 @@ namespace Game.Sim.Fast
 
 			if (target == null && awayTarget == null)
 			{
-				if (player != 0)
-					throw new InvalidOperationException("Couldn't obtain target for player != 0");
-				target = (FastPoint*)global->checkpoints.data + state->nextCheckpoint;
+				if (player == 0)
+					target = (FastPoint*)global->checkpoints.data + state->nextCheckpoint;
 			}
 
 			FastDirect result;
@@ -105,10 +103,11 @@ namespace Game.Sim.Fast
 					result = new FastDirect(nx, ny);
 				}
 			}
-			else
-			{
+			else if (awayTarget != null)
 				result = new FastDirect(source->x + source->x - awayTarget->x, source->y + source->y - awayTarget->y);
-			}
+			else
+				result = new FastDirect(0, 0);
+
 			result.Limit(config);
 			return result;
 		}

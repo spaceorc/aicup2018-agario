@@ -61,7 +61,7 @@ namespace Game.Sim.Fast
 			// todo recover score - it may be needed for better evaluation
 		}
 
-		public void Tick(FastGlobalState* globalState, FastDirect.List* directs, Config config)
+		public void Tick(FastGlobalState* global, FastDirect.List* directs, Config config)
 		{
 			ApplyDirects(directs, config);
 			MoveMoveables(config);
@@ -79,7 +79,7 @@ namespace Game.Sim.Fast
 			UpdateScores();
 			SplitViruses(config);
 
-			if (UpdateNextCheckpoint(globalState))
+			if (UpdateNextCheckpoint(global))
 				checkpointsTaken++;
 
 			tick++;
@@ -515,7 +515,7 @@ namespace Game.Sim.Fast
 			}
 		}
 
-		public bool UpdateNextCheckpoint(FastGlobalState* globalState)
+		public bool UpdateNextCheckpoint(FastGlobalState* global)
 		{
 			fixed (FastState* that = &this)
 			{
@@ -523,10 +523,10 @@ namespace Game.Sim.Fast
 				var frag = (FastFragment*)fragments->data;
 				for (var i = 0; i < fragments->count; i++, frag++)
 				{
-					var checkpoints = (FastPoint*)globalState->checkpoints.data;
+					var checkpoints = (FastPoint*)global->checkpoints.data;
 					if (frag->QDistance(checkpoints + that->nextCheckpoint) < 4 * 4 * frag->radius * frag->radius)
 					{
-						that->nextCheckpoint = (that->nextCheckpoint + 1) % globalState->checkpoints.count;
+						that->nextCheckpoint = (that->nextCheckpoint + 1) % global->checkpoints.count;
 						return true;
 					}
 				}

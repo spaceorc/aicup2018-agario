@@ -25,6 +25,26 @@ namespace Game.Strategies
 		public static void Register()
 		{
 			StrategiesRegistry.Register("FastAi", c => new FastAiStrategy(c, new SimpleFastAi(c)));
+			var constants1 = new FastEvaluationConstants();
+			var constants2 = new FastEvaluationConstants
+			{
+				canEatMeRadiusFactor = 3,
+				canSuperEatMeRadiusFactor = 6,
+				eatableRadiusFactor = 3,
+				scoreCoeff = 10000,
+				nearestFoodCoeff = 100,
+				checkpointsTakenCoeff = 1,
+				eatableCoeff = 0,
+				lastEatableCoeff = 0,
+				canEatMeCoeff = 0,
+				lastCanEatMeCoeff = 0,
+				canSuperEatMeCoeff = 0,
+				lastCanSuperEatMeCoeff = 0
+			};
+			StrategiesRegistry.Register("SimulationFastAi_1", c => new FastAiStrategy(c, new SimulationFastAi(c, new FastEvaluation(c, constants1), 10, false, new SimpleFastAi(c))));
+			StrategiesRegistry.Register("SimulationFastAi_Split1", c => new FastAiStrategy(c, new SimulationFastAi(c, new FastEvaluation(c, constants1), 10, true, new SimpleFastAi(c))));
+			StrategiesRegistry.Register("SimulationFastAi_2", c => new FastAiStrategy(c, new SimulationFastAi(c, new FastEvaluation(c, constants2), 10, false, new SimpleFastAi(c))));
+			StrategiesRegistry.Register("SimulationFastAi_Split2", c => new FastAiStrategy(c, new SimulationFastAi(c, new FastEvaluation(c, constants2), 10, true, new SimpleFastAi(c))));
 		}
 
 		private FastPoint GenerateCheckPoint(int index)
