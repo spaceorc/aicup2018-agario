@@ -60,6 +60,7 @@ namespace Game.Sim.Fast
 							clone.Tick(global, &directs, config);
 						}
 
+						Logger.Debug($"{target.x};{target.y} split={split}");
 						var score = evaluation.Evaluate(global, &clone, player);
 						if (score > bestScore)
 						{
@@ -73,6 +74,7 @@ namespace Game.Sim.Fast
 			bestDirect.Limit(config);
 			//stopwatch.Stop();
 			//Logger.Info($"Best score: {bestScore}. {stopwatch.ElapsedMilliseconds} ms");
+			Logger.Info($"Best score: {bestScore}");
 			return bestDirect;
 		}
 

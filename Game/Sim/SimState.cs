@@ -173,10 +173,22 @@ namespace Game.Sim
 			var fragments = players.GetOrAdd(id);
 			var act = fragments.GetOrAdd(fragmentId);
 			act.tick = tick;
+			var prev = act.item;
 			act.item = new Player(id, obj.X, obj.Y, obj.R, obj.M, fragmentId, config)
 			{
-				fuse_timer = 0 // todo for enemies: angle, speed, isFast, fuse_timer
+				fuse_timer = 0 // todo for enemies: fuse_timer
 			};
+			if (prev != null)
+			{
+				var speedx = obj.X - prev.x;
+				var speedy = obj.Y - prev.y;
+				act.item.angle = Math.Atan2(speedy, speedx);
+				act.item.speed = Math.Sqrt(speedx * speedx + speedy * speedy);
+				double max_speed = config.SPEED_FACTOR / Math.Sqrt(act.item.mass);
+				act.item.isFast = act.item.speed > max_speed;
+				if (act.item.isFast)
+					act.item.ApplyViscosity(max_speed);
+			}
 		}
 	}
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using Game.Protocol;
+using Newtonsoft.Json;
 
 namespace Game.Sim.Fast
 {
@@ -142,12 +143,15 @@ namespace Game.Sim.Fast
 
 			var checkpointsTakenValue = player != 0 ? 0 : state->checkpointsTaken + (diameter - Math.Sqrt(checkpointQDist)) / diameter;
 
-			return scoreValue * evaluationConstants.scoreCoeff
-				   + nearestFoodValue * evaluationConstants.nearestFoodCoeff
-				   + checkpointsTakenValue * evaluationConstants.checkpointsTakenCoeff
-				   + eatableValue * (eatableIsLast ? evaluationConstants.lastEatableCoeff : evaluationConstants.eatableCoeff)
-				   - canEatMeValue * (fragments->count == 1 ? evaluationConstants.lastCanEatMeCoeff : evaluationConstants.canEatMeCoeff)
-				   - canSuperEatMeValue * (fragments->count == 1 ? evaluationConstants.lastCanSuperEatMeCoeff : evaluationConstants.canSuperEatMeCoeff);
+
+			var result = scoreValue * evaluationConstants.scoreCoeff
+			        + nearestFoodValue * evaluationConstants.nearestFoodCoeff
+			        + checkpointsTakenValue * evaluationConstants.checkpointsTakenCoeff
+			        + eatableValue * (eatableIsLast ? evaluationConstants.lastEatableCoeff : evaluationConstants.eatableCoeff)
+			        - canEatMeValue * (fragments->count == 1 ? evaluationConstants.lastCanEatMeCoeff : evaluationConstants.canEatMeCoeff)
+			        - canSuperEatMeValue * (fragments->count == 1 ? evaluationConstants.lastCanSuperEatMeCoeff : evaluationConstants.canSuperEatMeCoeff);
+			Logger.Debug($"  {JsonConvert.SerializeObject(new {result, scoreValue, nearestFoodValue, checkpointsTakenValue, eatableValue, canEatMeValue, canSuperEatMeValue})}");
+			return result;
 		}
 	}
 }
