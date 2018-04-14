@@ -79,7 +79,6 @@ namespace Game.Sim
 			BurstOnViruses();
 
 			UpdatePlayersRadius();
-			UpdateScores();
 			SplitViruses();
 
 			UpdateNextGlobalTargets();
@@ -127,40 +126,26 @@ namespace Game.Sim
 			}
 		}
 
-		private void UpdateScores()
-		{
-			for (var i = 0; i < players.Length; i++)
-			{
-				var fragments = players[i];
-				foreach (var frag in fragments)
-				{
-					var score = frag.score;
-					if (score > 0)
-					{
-						frag.score = 0;
-						scores[i] += score;
-					}
-				}
-			}
-		}
 		private void EatAll()
 		{
-			Func<Circle, Player> nearest_player = circle =>
+			Func<Circle, Tuple<int, Player>> nearest_player = circle =>
 			{
-				Player nearest_predator = null;
+				Tuple<int, Player> nearest_predator = null;
 				var deeper_dist = double.NegativeInfinity;
-				foreach (var fragments in players)
+				for (var p = 0; p < players.Length; p++)
 				{
+					var fragments = players[p];
 					foreach (var predator in fragments)
 					{
 						var qdist = predator.CanEat(circle);
 						if (qdist > deeper_dist)
 						{
 							deeper_dist = qdist;
-							nearest_predator = predator;
+							nearest_predator = Tuple.Create(p, predator);
 						}
 					}
 				}
+
 				return nearest_predator;
 			};
 
@@ -186,7 +171,8 @@ namespace Game.Sim
 				var eater = nearest_player(food);
 				if (eater != null)
 				{
-					eater.Eat(food);
+					eater.Item2.Eat(food);
+					scores[eater.Item1] += Constants.SCORE_FOR_FOOD;
 					foods.RemoveAt(i);
 				}
 				else
@@ -207,7 +193,9 @@ namespace Game.Sim
 					var player = nearest_player(ejection);
 					if (player != null)
 					{
-						player.Eat(ejection);
+						player.Item2.Eat(ejection);
+						if (ejection.player != player.Item2.id)
+							scores[player.Item1] += Constants.SCORE_FOR_FOOD;
 						ejections.RemoveAt(i);
 					}
 					else
@@ -225,7 +213,8 @@ namespace Game.Sim
 					if (eater != null)
 					{
 						var isLast = fragments.Count == 1;
-						eater.Eat(frag, isLast);
+						eater.Item2.Eat(frag);
+						scores[eater.Item1] += isLast ? Constants.SCORE_FOR_LAST : Constants.SCORE_FOR_PLAYER;
 						fragments.RemoveAt(i);
 					}
 					else
@@ -315,6 +304,7 @@ namespace Game.Sim
 					int max_fId = players[playerT.Item1].Max(p => p.fragmentId);
 
 					playerT.Item2.BurstOn(virus);
+					scores[playerT.Item1] += Constants.SCORE_FOR_BURST;
 					var fragments = playerT.Item2.BurstNow(max_fId, yet_cnt);
 					players[playerT.Item1].AddRange(fragments);
 					

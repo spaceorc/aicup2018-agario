@@ -10,7 +10,6 @@ namespace Game.Types
 		public bool isFast;
 		public double speed;
 		public double angle;
-		public int score;
 		public int fragmentId;
 		public double visionRadius;
 
@@ -93,16 +92,10 @@ namespace Game.Types
 			return double.NegativeInfinity;
 		}
 
-		public void Eat(Circle food, bool isLast = false)
+		public void Eat(Circle food)
 		{
 			food.removed = true;
 			mass += food.mass;
-			if (food is Ejection ejection && ejection.player == id)
-				return;
-			if (food is Food)
-				score += Constants.SCORE_FOR_FOOD;
-			else if (food is Player)
-				score += !isLast ? Constants.SCORE_FOR_PLAYER : Constants.SCORE_FOR_LAST;
 		}
 
 		public bool CanBurst(int yetCnt)
@@ -121,26 +114,14 @@ namespace Game.Types
 
 		public void BurstOn(Virus virus)
 		{
-			double dist = Distance(virus);
 			double dy = y - virus.y, dx = x - virus.x;
-			double new_angle = 0.0;
-
-			if (dist > 0)
-			{
-				new_angle = Math.Asin(dy / dist);
-				if (dx < 0)
-				{
-					new_angle = Math.PI - new_angle;
-				}
-			}
-			angle = new_angle;
+			angle = Math.Atan2(dy, dx);
 			double max_speed = config.SPEED_FACTOR / Math.Sqrt(mass);
 			if (speed < max_speed)
 			{
 				speed = max_speed;
 			}
 			mass += Constants.BURST_BONUS;
-			score += Constants.SCORE_FOR_BURST;
 		}
 
 		public List<Player> BurstNow(int max_fId, int yet_cnt)
@@ -301,7 +282,6 @@ namespace Game.Types
 
 			mass -= Constants.EJECT_MASS;
 			radius = Mass2Radius(mass);
-			score += Constants.SCORE_FOR_EJECT;
 			return new_eject;
 		}
 

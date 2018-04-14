@@ -76,7 +76,6 @@ namespace Game.Sim.Fast
 			BurstOnViruses(config);
 
 			UpdatePlayersRadius(config);
-			UpdateScores();
 			SplitViruses(config);
 
 			if (UpdateNextCheckpoint(global))
@@ -212,6 +211,7 @@ namespace Game.Sim.Fast
 				{
 					var fragments = &that->fragments0;
 					FastFragment* eater = null;
+					var eaterPlayer = -1;
 					var deeper_dist = double.NegativeInfinity;
 					for (var p = 0; p < 4; p++, fragments++)
 					{
@@ -222,13 +222,17 @@ namespace Game.Sim.Fast
 							if (qdist > deeper_dist)
 							{
 								eater = frag;
+								eaterPlayer = p;
 								deeper_dist = qdist;
 							}
 						}
 					}
 
 					if (eater != null)
+					{
 						eater->Eat(food, config);
+						that->scores[eaterPlayer] += Constants.SCORE_FOR_FOOD;
+					}
 					else
 					{
 						if (tf != f)
@@ -255,6 +259,7 @@ namespace Game.Sim.Fast
 					{
 						var fragments = &that->fragments0;
 						FastFragment* eater = null;
+						var eaterPlayer = -1;
 						var deeper_dist = double.NegativeInfinity;
 						for (var p = 0; p < 4; p++, fragments++)
 						{
@@ -267,6 +272,7 @@ namespace Game.Sim.Fast
 								if (qdist > deeper_dist)
 								{
 									eater = frag;
+									eaterPlayer = p;
 									deeper_dist = qdist;
 								}
 							}
@@ -275,7 +281,8 @@ namespace Game.Sim.Fast
 						if (eater != null)
 						{
 							var isLast = fi == ffragments->count - 1 && tf == 0;
-							eater->Eat(ffrag, isLast);
+							eater->Eat(ffrag);
+							that->scores[eaterPlayer] += isLast ? Constants.SCORE_FOR_LAST : Constants.SCORE_FOR_PLAYER;
 						}
 						else
 						{
@@ -319,11 +326,10 @@ namespace Game.Sim.Fast
 					{
 						var fragments = &that->fragments0;
 						FastFragment* eaterFrag = null;
+						var eaterPlayer = -1;
 						deeper_dist = double.NegativeInfinity;
 						for (var p = 0; p < 4; p++, fragments++)
 						{
-							if (p == eject->player)
-								continue;
 							var frag = (FastFragment*)fragments->data;
 							for (var i = 0; i < fragments->count; i++, frag++)
 							{
@@ -331,13 +337,18 @@ namespace Game.Sim.Fast
 								if (qdist > deeper_dist)
 								{
 									eaterFrag = frag;
+									eaterPlayer = p;
 									deeper_dist = qdist;
 								}
 							}
 						}
 
 						if (eaterFrag != null)
+						{
 							eaterFrag->Eat(eject);
+							if (eaterPlayer != eject->player)
+								that->scores[eaterPlayer] += Constants.SCORE_FOR_FOOD;
+						}
 						else
 						{
 							if (te != e)
@@ -424,6 +435,7 @@ namespace Game.Sim.Fast
 					var fragments = &that->fragments0;
 					FastFragment.List* nearest_fragments = null;
 					FastFragment* nearest_frag = null;
+					var nearestPlayer = -1;
 					for (var p = 0; p < 4; p++, fragments++)
 					{
 						var frag = (FastFragment*)fragments->data;
@@ -437,6 +449,7 @@ namespace Game.Sim.Fast
 								{
 									nearest_dist = qdist;
 									nearest_frag = frag;
+									nearestPlayer = p;
 									nearest_fragments = fragments;
 								}
 							}
@@ -446,6 +459,7 @@ namespace Game.Sim.Fast
 					if (nearest_frag != null)
 					{
 						nearest_frag->BurstOn(virus, config);
+						that->scores[nearestPlayer] += Constants.SCORE_FOR_BURST;
 						nearest_frag->BurstNow(nearest_fragments, config);
 					}
 					else
@@ -472,27 +486,6 @@ namespace Game.Sim.Fast
 					for (var i = 0; i < fragments->count; i++, frag++)
 						frag->UpdateByMass(config);
 					fragments->Sort();
-				}
-			}
-		}
-
-		private void UpdateScores()
-		{
-			fixed (FastState* that = &this)
-			{
-				var fragments = &that->fragments0;
-				for (var p = 0; p < 4; p++, fragments++)
-				{
-					var frag = (FastFragment*)fragments->data;
-					for (var i = 0; i < fragments->count; i++, frag++)
-					{
-						var score = frag->score;
-						if (score > 0)
-						{
-							frag->score = 0;
-							that->scores[p] += score;
-						}
-					}
 				}
 			}
 		}

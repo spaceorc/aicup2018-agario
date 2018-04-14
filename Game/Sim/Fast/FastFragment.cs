@@ -11,7 +11,7 @@ namespace Game.Sim.Fast
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct FastFragment
 	{
-		public const int size = sizeof(double) * 7 + sizeof(int) * 4;
+		public const int size = sizeof(double) * 7 + sizeof(int) * 2;
 
 		static FastFragment()
 		{
@@ -28,7 +28,6 @@ namespace Game.Sim.Fast
 		public double ndy;
 		public int fuse_timer;
 		public int isFast;
-		public int score;
 
 		public FastFragment(Player player) : this()
 		{
@@ -45,7 +44,7 @@ namespace Game.Sim.Fast
 
 		public override string ToString()
 		{
-			return $"{x},{y} => M:{mass}, R:{radius}, A:{Math.Atan2(ndy, ndx)}, S:{speed}, TTF:{fuse_timer}{(isFast == 1 ? ", FAST" : "")}, {nameof(score)}:{score}";
+			return $"{x},{y} => M:{mass}, R:{radius}, A:{Math.Atan2(ndy, ndx)}, S:{speed}, TTF:{fuse_timer}{(isFast == 1 ? ", FAST" : "")}";
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -370,7 +369,6 @@ namespace Game.Sim.Fast
 		public void Eat(FastPoint* food, Config config)
 		{
 			mass += config.FOOD_MASS;
-			score += Constants.SCORE_FOR_FOOD;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -380,10 +378,9 @@ namespace Game.Sim.Fast
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Eat(FastFragment* frag, bool isLast)
+		public void Eat(FastFragment* frag)
 		{
 			mass += frag->mass;
-			score += !isLast ? Constants.SCORE_FOR_PLAYER : Constants.SCORE_FOR_LAST;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -565,11 +562,9 @@ namespace Game.Sim.Fast
 			
 			double max_speed = config.SPEED_FACTOR / Math.Sqrt(mass);
 			if (speed < max_speed)
-			{
 				speed = max_speed;
-			}
+
 			mass += Constants.BURST_BONUS;
-			score += Constants.SCORE_FOR_BURST;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -593,7 +588,6 @@ namespace Game.Sim.Fast
 			
 			mass -= Constants.EJECT_MASS;
 			radius = Mass2Radius(mass);
-			score += Constants.SCORE_FOR_EJECT;
 			return new_eject;
 		}
 

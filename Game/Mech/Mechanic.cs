@@ -60,7 +60,6 @@ namespace Game.Mech
 			BurstOnViruses();
 
 			UpdatePlayersRadius();
-			UpdateScores();
 			SplitViruses();
 
 			if (tick % Constants.ADD_FOOD_DELAY == 0 && foods.Count < Constants.MAX_GAME_FOOD)
@@ -187,6 +186,7 @@ namespace Game.Mech
 				if (eater != null)
 				{
 					eater.Eat(food);
+					playerScores[eater.id] += Constants.SCORE_FOR_FOOD;
 					foods.Remove(food);
 				}
 			}
@@ -205,6 +205,8 @@ namespace Game.Mech
 					if (player != null)
 					{
 						player.Eat(ejection);
+						if (ejection.id != player.id)
+							playerScores[player.id] += Constants.SCORE_FOR_FOOD;
 						ejections.Remove(ejection);
 					}
 				}
@@ -217,7 +219,8 @@ namespace Game.Mech
 				if (eater != null)
 				{
 					bool isLast = players.Count(pp => pp.id == player.id) == 1;
-					eater.Eat(player, isLast);
+					eater.Eat(player);
+					playerScores[eater.id] += isLast ? Constants.SCORE_FOR_LAST : Constants.SCORE_FOR_PLAYER;
 					players.Remove(player);
 				}
 			}
@@ -227,20 +230,6 @@ namespace Game.Mech
 		{
 			foreach (var player in players)
 				player.UpdateByMass();
-		}
-
-		private void UpdateScores()
-		{
-			foreach (var player in players)
-			{
-				int score = player.score;
-				if (score > 0)
-				{
-					int pId = player.id;
-					player.score = 0;
-					playerScores[pId] += score;
-				}
-			}
 		}
 
 		private void SplitViruses()
@@ -296,6 +285,7 @@ namespace Game.Mech
 					int max_fId = players.Where(p => p.id == player.id).Max(p => p.fragmentId);
 				
 					player.BurstOn(virus);
+					playerScores[player.id] += Constants.SCORE_FOR_BURST;
 					var fragments = player.BurstNow(max_fId, yet_cnt);
 					players.AddRange(fragments);
 

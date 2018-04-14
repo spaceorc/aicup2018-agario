@@ -63,8 +63,7 @@ namespace Game.Types
 		public const int SCORE_FOR_PLAYER = 10;
 		public const int SCORE_FOR_LAST = 100;
 		public const int SCORE_FOR_BURST = 2;
-		public const int SCORE_FOR_EJECT = 0;
-
+		
 		public const int MAX_GAME_FOOD = 2000;
 		public const int MAX_GAME_VIRUS = 20;
 	}
