@@ -150,7 +150,8 @@ namespace Game.Sim.Fast
 			        + eatableValue * (eatableIsLast ? evaluationConstants.lastEatableCoeff : evaluationConstants.eatableCoeff)
 			        - canEatMeValue * (fragments->count == 1 ? evaluationConstants.lastCanEatMeCoeff : evaluationConstants.canEatMeCoeff)
 			        - canSuperEatMeValue * (fragments->count == 1 ? evaluationConstants.lastCanSuperEatMeCoeff : evaluationConstants.canSuperEatMeCoeff);
-			Logger.Debug($"  {JsonConvert.SerializeObject(new {result, scoreValue, nearestFoodValue, checkpointsTakenValue, eatableValue, canEatMeValue, canSuperEatMeValue})}");
+			if (Logger.IsEnabled(Logger.Level.Debug))
+				Logger.Debug($"  {JsonConvert.SerializeObject(new {result, scoreValue, nearestFoodValue, checkpointsTakenValue, eatableValue, canEatMeValue, canSuperEatMeValue})}");
 			return result;
 		}
 	}

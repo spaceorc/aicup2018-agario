@@ -60,7 +60,8 @@ namespace Game.Sim.Fast
 							clone.Tick(global, &directs, config);
 						}
 
-						Logger.Debug($"{target.x};{target.y} split={split}");
+						if (Logger.IsEnabled(Logger.Level.Debug))
+							Logger.Debug($"{target.x};{target.y} split={split}");
 						var score = evaluation.Evaluate(global, &clone, player);
 						if (score > bestScore)
 						{

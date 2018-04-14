@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 
 namespace Game
 {
@@ -18,6 +19,12 @@ namespace Game
 		public static bool enableConsole;
 		public static bool enableFile = true;
 		public static Level minLevel = Level.Info;
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static bool IsEnabled(Level level)
+		{
+			return level >= minLevel;
+		}
 
 		[Conditional("LOGGING")]
 		public static void Log(Level level, string msg)

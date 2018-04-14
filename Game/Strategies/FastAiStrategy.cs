@@ -4,6 +4,7 @@ using System.Linq;
 using Game.Protocol;
 using Game.Sim.Fast;
 using Game.Types;
+using Newtonsoft.Json;
 
 namespace Game.Strategies
 {
@@ -18,7 +19,7 @@ namespace Game.Strategies
 		public FastAiStrategy(Config config, IFastAi ai) : base(config)
 		{
 			this.ai = ai;
-			for (int i = 0; i < CHECKPOINTS_COUNT; i++)
+			for (var i = 0; i < CHECKPOINTS_COUNT; i++)
 				global.checkpoints.Add(GenerateCheckPoint(i));
 		}
 
@@ -53,7 +54,7 @@ namespace Game.Strategies
 			{
 				var minDiffDist = Math.Sqrt(config.GAME_WIDTH * config.GAME_WIDTH + config.GAME_HEIGHT * config.GAME_HEIGHT) * 0.25;
 				var awayPoints = new List<Point>();
-				for (int i = index + CHECKPOINTS_COUNT - CHECKPOINTS_LAST_AWAY_COUNT; i <= index + CHECKPOINTS_COUNT + CHECKPOINTS_LAST_AWAY_COUNT; i++)
+				for (var i = index + CHECKPOINTS_COUNT - CHECKPOINTS_LAST_AWAY_COUNT; i <= index + CHECKPOINTS_COUNT + CHECKPOINTS_LAST_AWAY_COUNT; i++)
 				{
 					var ai = i % CHECKPOINTS_COUNT;
 					if (ai == index || ai >= g->checkpoints.count)
@@ -79,8 +80,19 @@ namespace Game.Strategies
 			fixed (FastGlobalState* g = &global)
 			{
 				var fastDirect = ai.GetDirect(g, &sim, 0);
-				return fastDirect.ToDirect(config);
+				var direct = fastDirect.ToDirect(config);
+				direct.debug = JsonConvert.SerializeObject(new{ nextCheckpoint, checkpoints = Checkpoints(g) });
+				return direct;
 			}
+		}
+
+		private static List<Point> Checkpoints(FastGlobalState* global)
+		{
+			var result = new List<Point>();
+			var checkpoint = (FastPoint*)global->checkpoints.data;
+			for (var i = 0; i < global->checkpoints.count; i++, checkpoint++)
+				result.Add(new Point(checkpoint->x, checkpoint->y));
+			return result;
 		}
 
 		private void PrepareGlobalTarget(FastState* sim)
