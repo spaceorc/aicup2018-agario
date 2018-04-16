@@ -5,8 +5,6 @@
 	{
 		public const int FOOD_FORGET_TICKS = 20;
 		public const int ENEMY_FORGET_TICKS = 20;
-
-		//public const string DefaultStrategy = "NearestFood_Fixed";
-		public const string DefaultStrategy = "SimulationFastAi_Split1";
+		public const string DefaultStrategy = "sim_5_split";
 	}
 }
