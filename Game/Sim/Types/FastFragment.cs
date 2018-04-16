@@ -6,7 +6,7 @@ using System.Text;
 using Game.Protocol;
 using Game.Types;
 
-namespace Game.Sim.Fast
+namespace Game.Sim.Types
 {
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct FastFragment

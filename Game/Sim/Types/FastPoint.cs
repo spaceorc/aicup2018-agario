@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Game.Types;
 
-namespace Game.Sim.Fast
+namespace Game.Sim.Types
 {
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct FastPoint

@@ -2,12 +2,11 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Game.Protocol;
-using Game.Types;
 
-namespace Game.Sim.Fast
+namespace Game.Sim.Types
 {
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct MovingPoint
+	public unsafe struct FastMovingPoint
 	{
 		public const int size = sizeof(double) * 5;
 

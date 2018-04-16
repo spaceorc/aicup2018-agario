@@ -1,39 +1,25 @@
 ﻿using System;
 using Game.Protocol;
+using Game.Sim;
+using Game.Sim.Types;
 using Newtonsoft.Json;
 
-namespace Game.Sim.Fast
+namespace Game.Ai
 {
-	public class FastEvaluationConstants
-	{
-		public double canEatMeRadiusFactor = 3;
-		public double canSuperEatMeRadiusFactor = 6;
-		public double eatableRadiusFactor = 3;
-		public double scoreCoeff = 10000;
-		public double nearestFoodCoeff = 100;
-		public double checkpointsTakenCoeff = 1;
-		public double eatableCoeff = 10000;
-		public double lastEatableCoeff = 50000;
-		public double canEatMeCoeff = 20000;
-		public double lastCanEatMeCoeff = 100000;
-		public double canSuperEatMeCoeff = 40000;
-		public double lastCanSuperEatMeCoeff = 200000;
-	}
-
-	public unsafe class FastEvaluation : IFastEvaluation
+	public unsafe class Evaluation : IEvaluation
 	{
 		private readonly Config config;
-		private readonly FastEvaluationConstants evaluationConstants;
+		private readonly EvaluationArgs evaluationArgs;
 		private readonly double diameter;
 
-		public FastEvaluation(Config config, FastEvaluationConstants evaluationConstants)
+		public Evaluation(Config config, EvaluationArgs evaluationArgs)
 		{
 			this.config = config;
-			this.evaluationConstants = evaluationConstants;
+			this.evaluationArgs = evaluationArgs;
 			diameter = Math.Sqrt(config.GAME_HEIGHT * config.GAME_HEIGHT + config.GAME_WIDTH * config.GAME_WIDTH);
 		}
 
-		public double Evaluate(FastGlobalState* global, FastState* state, int player)
+		public double Evaluate(FastGlobal* global, Simulator* state, int player)
 		{
 			var fragments = &state->fragments0 + player;
 			if (fragments->count == 0)
@@ -104,7 +90,7 @@ namespace Game.Sim.Fast
 						if (frag->Eatable(efrag))
 						{
 							var qdist = frag->QDistance(efrag);
-							if (qdist < (evaluationConstants.eatableRadiusFactor * frag->radius) * (evaluationConstants.eatableRadiusFactor * frag->radius) && qdist < eatableQDist)
+							if (qdist < (evaluationArgs.eatableRadiusFactor * frag->radius) * (evaluationArgs.eatableRadiusFactor * frag->radius) && qdist < eatableQDist)
 							{
 								eatableQDist = qdist;
 								eatableIsLast = efragments->count == 1;
@@ -114,7 +100,7 @@ namespace Game.Sim.Fast
 						else if (efrag->EatableBySplit(frag))
 						{
 							var qdist = frag->QDistance(efrag);
-							if (qdist < (evaluationConstants.canSuperEatMeRadiusFactor * efrag->radius) * (evaluationConstants.canSuperEatMeRadiusFactor * efrag->radius) && qdist < canEatMeQDist)
+							if (qdist < (evaluationArgs.canSuperEatMeRadiusFactor * efrag->radius) * (evaluationArgs.canSuperEatMeRadiusFactor * efrag->radius) && qdist < canEatMeQDist)
 							{
 								canEatMeQDist = qdist;
 								canEatMeRadius = efrag->radius;
@@ -124,7 +110,7 @@ namespace Game.Sim.Fast
 						else if (efrag->Eatable(frag))
 						{
 							var qdist = frag->QDistance(efrag);
-							if (qdist < (evaluationConstants.canEatMeRadiusFactor * efrag->radius) * (evaluationConstants.canEatMeRadiusFactor * efrag->radius) && qdist < canEatMeQDist)
+							if (qdist < (evaluationArgs.canEatMeRadiusFactor * efrag->radius) * (evaluationArgs.canEatMeRadiusFactor * efrag->radius) && qdist < canEatMeQDist)
 							{
 								canEatMeQDist = qdist;
 								canEatMeRadius = efrag->radius;
@@ -137,19 +123,19 @@ namespace Game.Sim.Fast
 
 			var scoreValue = state->scores[player] - maxEnemyScore;
 			var nearestFoodValue = double.IsPositiveInfinity(foodQDist) ? 0 : (diameter - Math.Sqrt(foodQDist)) / diameter;
-			var eatableValue = double.IsPositiveInfinity(eatableQDist) ? 0 : (eatingAllyRadius * evaluationConstants.eatableRadiusFactor - Math.Sqrt(eatableQDist)) / (eatingAllyRadius * evaluationConstants.eatableRadiusFactor);
-			var canEatMeValue = isSuperEatMe || double.IsPositiveInfinity(canEatMeQDist) ? 0 : (canEatMeRadius * evaluationConstants.canEatMeRadiusFactor - Math.Sqrt(canEatMeQDist)) / (canEatMeRadius * evaluationConstants.canEatMeRadiusFactor);
-			var canSuperEatMeValue = !isSuperEatMe || double.IsPositiveInfinity(canEatMeQDist) ? 0 : (canEatMeRadius * evaluationConstants.canSuperEatMeRadiusFactor - Math.Sqrt(canEatMeQDist)) / (canEatMeRadius * evaluationConstants.canSuperEatMeRadiusFactor);
+			var eatableValue = double.IsPositiveInfinity(eatableQDist) ? 0 : (eatingAllyRadius * evaluationArgs.eatableRadiusFactor - Math.Sqrt(eatableQDist)) / (eatingAllyRadius * evaluationArgs.eatableRadiusFactor);
+			var canEatMeValue = isSuperEatMe || double.IsPositiveInfinity(canEatMeQDist) ? 0 : (canEatMeRadius * evaluationArgs.canEatMeRadiusFactor - Math.Sqrt(canEatMeQDist)) / (canEatMeRadius * evaluationArgs.canEatMeRadiusFactor);
+			var canSuperEatMeValue = !isSuperEatMe || double.IsPositiveInfinity(canEatMeQDist) ? 0 : (canEatMeRadius * evaluationArgs.canSuperEatMeRadiusFactor - Math.Sqrt(canEatMeQDist)) / (canEatMeRadius * evaluationArgs.canSuperEatMeRadiusFactor);
 
 			var checkpointsTakenValue = player != 0 ? 0 : state->checkpointsTaken + (diameter - Math.Sqrt(checkpointQDist)) / diameter;
 
 
-			var result = scoreValue * evaluationConstants.scoreCoeff
-			        + nearestFoodValue * evaluationConstants.nearestFoodCoeff
-			        + checkpointsTakenValue * evaluationConstants.checkpointsTakenCoeff
-			        + eatableValue * (eatableIsLast ? evaluationConstants.lastEatableCoeff : evaluationConstants.eatableCoeff)
-			        - canEatMeValue * (fragments->count == 1 ? evaluationConstants.lastCanEatMeCoeff : evaluationConstants.canEatMeCoeff)
-			        - canSuperEatMeValue * (fragments->count == 1 ? evaluationConstants.lastCanSuperEatMeCoeff : evaluationConstants.canSuperEatMeCoeff);
+			var result = scoreValue * evaluationArgs.scoreCoeff
+			        + nearestFoodValue * evaluationArgs.nearestFoodCoeff
+			        + checkpointsTakenValue * evaluationArgs.checkpointsTakenCoeff
+			        + eatableValue * (eatableIsLast ? evaluationArgs.lastEatableCoeff : evaluationArgs.eatableCoeff)
+			        - canEatMeValue * (fragments->count == 1 ? evaluationArgs.lastCanEatMeCoeff : evaluationArgs.canEatMeCoeff)
+			        - canSuperEatMeValue * (fragments->count == 1 ? evaluationArgs.lastCanSuperEatMeCoeff : evaluationArgs.canSuperEatMeCoeff);
 			if (Logger.IsEnabled(Logger.Level.Debug))
 				Logger.Debug($"  {JsonConvert.SerializeObject(new {result, scoreValue, nearestFoodValue, checkpointsTakenValue, eatableValue, canEatMeValue, canSuperEatMeValue})}");
 			return result;

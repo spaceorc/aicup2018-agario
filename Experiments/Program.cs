@@ -6,12 +6,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Game;
+using Game.Ai;
 using Game.Helpers;
 using Game.Mech;
 using Game.Protocol;
 using Game.Sim;
-using Game.Sim.Fast;
 using Game.Strategies;
+using Game.Types;
 using Newtonsoft.Json;
 using Point = Game.Types.Point;
 
@@ -19,7 +20,7 @@ namespace Experiments
 {
 	internal unsafe class Program
 	{
-		public static void Main()
+		public static void Main124312()
 		{
 			Logger.enableFile = false;
 			Logger.enableConsole = true;
@@ -32,16 +33,16 @@ namespace Experiments
 			//	var turnInput = JsonConvert.DeserializeObject<TurnInput>(
 			//		@"{""Mine"":[{""Id"":""4.2"",""M"":67.633442164008983,""R"":16.447910768727922,""SX"":-0.17497948845230288,""SY"":0.37057310278552424,""TTF"":129,""X"":873.84057938669969,""Y"":284.79763238540119},{""Id"":""4.1"",""M"":77.504022747462827,""R"":17.607273809134998,""SX"":-0.15114037419667012,""SY"":0.30010456527392138,""TTF"":129,""X"":904.78855873536077,""Y"":262.6669254192426}],""Objects"":[{""T"":""F"",""X"":937,""Y"":240},{""T"":""F"",""X"":848,""Y"":306},{""Id"":""21"",""M"":40,""T"":""V"",""X"":345.12157105167103,""Y"":393.12157105167103},{""Id"":""22"",""M"":40,""T"":""V"",""X"":644.87842894832897,""Y"":393.12157105167103},{""Id"":""23"",""M"":40,""T"":""V"",""X"":644.87842894832897,""Y"":596.87842894832897},{""Id"":""24"",""M"":40,""T"":""V"",""X"":345.12157105167103,""Y"":596.87842894832897}]}");
 
-			//	var simState = new SimState(config);
+			//	var simState = new State(config);
 			//	simState.Apply(turnInput);
 
-			//	var ai = new SimulationFastAi(config, new FastEvaluation(config, new FastEvaluationConstants()), 10, false,
-			//		new SimpleFastAi(config));
+			//	var ai = new SimulationAi(config, new Evaluation(config, new EvaluationArgs()), 10, false,
+			//		new SimpleAi(config));
 
-			//	var global = new FastGlobalState();
+			//	var global = new FastGlobal();
 			//	global.checkpoints.Add(268.20020085559935, 489.52990276729895);
 
-			//	var state = new FastState(simState, 0);
+			//	var state = new Simulator(simState, 0);
 
 			//	var direct = ai.GetDirect(&global, &state, 0);
 
@@ -52,16 +53,16 @@ namespace Experiments
 			//	var turnInput = JsonConvert.DeserializeObject<TurnInput>(
 			//		@"{""Mine"":[{""Id"":""4.2"",""M"":67.633442164008983,""R"":16.447910768727922,""SX"":0.58093514692431203,""SY"":-0.20863814994066202,""TTF"":128,""X"":874.42151453362396,""Y"":284.58899423546052},{""Id"":""4.1"",""M"":77.504022747462827,""R"":17.607273809134998,""SX"":0.46413424705286627,""SY"":-0.16413419361259846,""TTF"":128,""X"":905.25269298241358,""Y"":262.50279122563001}],""Objects"":[{""T"":""F"",""X"":937,""Y"":240},{""T"":""F"",""X"":848,""Y"":306},{""Id"":""21"",""M"":40,""T"":""V"",""X"":345.12157105167103,""Y"":393.12157105167103},{""Id"":""22"",""M"":40,""T"":""V"",""X"":644.87842894832897,""Y"":393.12157105167103},{""Id"":""23"",""M"":40,""T"":""V"",""X"":644.87842894832897,""Y"":596.87842894832897},{""Id"":""24"",""M"":40,""T"":""V"",""X"":345.12157105167103,""Y"":596.87842894832897}]}");
 
-			//	var simState = new SimState(config);
+			//	var simState = new State(config);
 			//	simState.Apply(turnInput);
 
-			//	var ai = new SimulationFastAi(config, new FastEvaluation(config, new FastEvaluationConstants()), 10, false,
-			//		new SimpleFastAi(config));
+			//	var ai = new SimulationAi(config, new Evaluation(config, new EvaluationArgs()), 10, false,
+			//		new SimpleAi(config));
 
-			//	var global = new FastGlobalState();
+			//	var global = new FastGlobal();
 			//	global.checkpoints.Add(268.20020085559935, 489.52990276729895);
 
-			//	var state = new FastState(simState, 0);
+			//	var state = new Simulator(simState, 0);
 
 			//	var direct = ai.GetDirect(&global, &state, 0);
 
@@ -75,56 +76,22 @@ namespace Experiments
 				var turnInput = JsonConvert.DeserializeObject<TurnInput>(
 					@"{""Mine"":[{""Id"":""1"",""X"":577.30890001436046,""Y"":547.31967058184318,""SX"":0.48750427311379474,""SY"":-0.45640335222875072,""R"":55.497580750153787,""M"":769.99536727996008,""TTF"":0}],""Objects"":[{""T"":""F"",""X"":418.0,""Y"":398.0,""R"":0.0,""M"":0.0},{""T"":""F"",""X"":531.0,""Y"":415.0,""R"":0.0,""M"":0.0},{""T"":""F"",""X"":486.0,""Y"":454.0,""R"":0.0,""M"":0.0},{""T"":""F"",""X"":425.0,""Y"":491.0,""R"":0.0,""M"":0.0},{""T"":""F"",""X"":504.0,""Y"":528.0,""R"":0.0,""M"":0.0},{""Id"":""4.1"",""T"":""P"",""X"":644.00071876924608,""Y"":365.43749415199926,""R"":15.99928123075397,""M"":63.994249975189071},{""Id"":""4.2"",""T"":""P"",""X"":638.30927224860636,""Y"":491.9947000996508,""R"":15.99928123075397,""M"":63.994249975189071},{""Id"":""21"",""T"":""V"",""X"":146.0,""Y"":205.0,""R"":0.0,""M"":40.0},{""Id"":""24"",""T"":""V"",""X"":146.0,""Y"":455.0,""R"":0.0,""M"":40.0},{""Id"":""266"",""T"":""V"",""X"":614.0,""Y"":123.0,""R"":0.0,""M"":40.0},{""Id"":""509"",""T"":""V"",""X"":89.0,""Y"":247.0,""R"":0.0,""M"":40.0},{""Id"":""753"",""T"":""V"",""X"":277.0,""Y"":96.0,""R"":0.0,""M"":40.0},{""Id"":""754"",""T"":""V"",""X"":383.0,""Y"":96.0,""R"":0.0,""M"":40.0},{""Id"":""755"",""T"":""V"",""X"":383.0,""Y"":564.0,""R"":0.0,""M"":40.0},{""Id"":""756"",""T"":""V"",""X"":277.0,""Y"":564.0,""R"":0.0,""M"":40.0}]}");
 
-				var simState = new SimState(config);
+				var simState = new State(config);
 				simState.Apply(prevTurnInput);
 				simState.Apply(turnInput);
 
-				var ai = new SimulationFastAi(config, new FastEvaluation(config, new FastEvaluationConstants()), 10, true,
-					new SimpleFastAi(config));
+				var ai = new SimulationAi(config, new Evaluation(config, new EvaluationArgs()), 10, true,
+					new SimpleAi(config));
 
-				var global = new FastGlobalState();
+				var global = new FastGlobal();
 				global.checkpoints.Add(268.20020085559935, 489.52990276729895);
 
-				var state = new FastState(simState, 0);
+				var state = new Simulator(simState, 0);
 
 				var direct = ai.GetDirect(&global, &state, 0);
 
 				Console.Out.WriteLine(direct);
 			}
-		}
-
-		public static void Main212()
-		{
-			Logger.enableFile = false;
-
-			var config = JsonConvert.DeserializeObject<Config>(
-				@"{""GAME_HEIGHT"":660,""GAME_WIDTH"":660,""GAME_TICKS"":75000,""FOOD_MASS"":1.0,""MAX_FRAGS_CNT"":10,""TICKS_TIL_FUSION"":250,""VIRUS_RADIUS"":22.0,""VIRUS_SPLIT_MASS"":80.0,""VISCOSITY"":0.25,""INERTION_FACTOR"":10.0,""SPEED_FACTOR"":25.0}");
-
-			var turnInput = JsonConvert.DeserializeObject<TurnInput>(
-				@"{""Mine"":[{""Id"":""1"",""X"":282.764659119549,""Y"":255.00047968359704,""SX"":2.3029305366512363,""SY"":1.1739094325097006,""R"":12.649110640673518,""M"":40.0,""TTF"":3014700}],""Objects"":[{""Id"":null,""pId"":null,""T"":""F"",""X"":299.0,""Y"":225.0,""R"":0.0,""M"":0.0}]}");
-
-			var log = new DirectoryInfo(FileHelper.PatchDirectoryName("logs")).GetFiles("*.txt").OrderBy(x => x.Name).Select(x => x.FullName).Last();
-
-			var simState = new SimState(config);
-			simState.Apply(turnInput);
-
-			var lines = File.ReadAllLines(log);
-			var globalTargets = new List<Point>();
-			foreach (var gline in lines.Where(ll => ll.IndexOf("GLOBAL: ") >= 0))
-			{
-				var gs = gline.Substring(gline.IndexOf("GLOBAL: ") + "GLOBAL: ".Length).Split(' ');
-				globalTargets.Add(new Point(double.Parse(gs[0]), double.Parse(gs[1])));
-			}
-
-			var simulator = new Simulator(simState, globalTargets.ToArray(), new[] {0, 0, 0, 0});
-			var genome = @"0,723181351890406 0,744578209586711 0,772885398367832 0,774327497358586 0,563500011136522 0,565475642013119 0,414556856460197 0,303055067687787 0,383227259099124 0,427279238788075 0,848288005147263 0,374969424854484 0,354406009593236 0,351577740791988 0,194683879238872 0,990434869653748 0,50676403963322 0,245935701879643"
-				.Split(' ').Select(double.Parse).ToArray();
-
-			var ga = new GA(config, new Random());
-			ga.Simulate(simulator, 0, genome);
-
-			Console.Out.WriteLine(ga.Evaluate(simulator, 0));
-
 		}
 
 		public static void Main123123()
@@ -240,10 +207,10 @@ namespace Experiments
 				@"{""FOOD_MASS"":1.1699651787931546,""GAME_HEIGHT"":990,""GAME_TICKS"":7500,""GAME_WIDTH"":990,""INERTION_FACTOR"":18.311331992550009,""MAX_FRAGS_CNT"":4,""SPEED_FACTOR"":61.964198190568723,""TICKS_TIL_FUSION"":428,""VIRUS_RADIUS"":27.671011120486231,""VIRUS_SPLIT_MASS"":82.838148942917172,""VISCOSITY"":0.1961202661671938}");
 			var mechanic = new Mechanic(config, new List<PlayerStrategy>
 			{
-				new PlayerStrategy(config, c => new SimpleStrategy(c)),
-				new PlayerStrategy(config, c => new NearestFoodStrategy(c, true)),
-				new PlayerStrategy(config, c => new FastAiStrategy(c, new SimpleFastAi(c))),
-				new PlayerStrategy(config, c => new FastAiStrategy(c, new SimulationFastAi(c, new FastEvaluation(c, new FastEvaluationConstants()), 10, false, new SimpleFastAi(c)))),
+				new PlayerStrategy(config, c => new Strategy(c, new SimpleAi(c))),
+				new PlayerStrategy(config, c => new Strategy(c, new SimpleAi(c))),
+				new PlayerStrategy(config, c => new Strategy(c, new SimpleAi(c))),
+				new PlayerStrategy(config, c => new Strategy(c, new SimulationAi(c, new Evaluation(c, new EvaluationArgs()), 10, false, new SimpleAi(c)))),
 			});
 			mechanic.Play();
 			foreach (var kvp in mechanic.playerScores)
@@ -252,7 +219,7 @@ namespace Experiments
 			}
 		}
 
-		public static void Main11212()
+		public static void Main()
 		{
 			const int parallelizm = 4;
 			var strategies = StrategiesRegistry.Names;

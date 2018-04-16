@@ -6,12 +6,12 @@ using System.Text;
 using Game.Protocol;
 using Game.Types;
 
-namespace Game.Sim.Fast
+namespace Game.Sim.Types
 {
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct FastVirus
 	{
-		public const int size = MovingPoint.size + sizeof(double) * 4;
+		public const int size = FastMovingPoint.size + sizeof(double) * 4;
 
 		static FastVirus()
 		{
@@ -31,7 +31,7 @@ namespace Game.Sim.Fast
 			splitNdy = Math.Sin(virus.splitAngle);
 		}
 
-		public MovingPoint point;
+		public FastMovingPoint point;
 		public double mass;
 		public double radius;
 		public double splitNdx;

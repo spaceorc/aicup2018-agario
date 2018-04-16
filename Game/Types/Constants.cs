@@ -1,5 +1,4 @@
 ﻿using System;
-using Game.Protocol;
 
 namespace Game.Types
 {

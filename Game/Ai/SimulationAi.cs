@@ -1,17 +1,20 @@
 ﻿using System.Collections.Generic;
 using Game.Protocol;
+using Game.Sim;
+using Game.Sim.Types;
+using Game.Strategies;
 
-namespace Game.Sim.Fast
+namespace Game.Ai
 {
-	public unsafe class SimulationFastAi : IFastAi
+	public unsafe class SimulationAi : IAi
 	{
 		private readonly Config config;
-		private readonly IFastEvaluation evaluation;
+		private readonly IEvaluation evaluation;
 		private readonly int depth;
 		private readonly bool useSplit;
-		private readonly IFastAi enemyAi;
+		private readonly IAi enemyAi;
 
-		public SimulationFastAi(Config config, IFastEvaluation evaluation, int depth, bool useSplit, IFastAi enemyAi)
+		public SimulationAi(Config config, IEvaluation evaluation, int depth, bool useSplit, IAi enemyAi)
 		{
 			this.config = config;
 			this.evaluation = evaluation;
@@ -20,7 +23,17 @@ namespace Game.Sim.Fast
 			this.enemyAi = enemyAi;
 		}
 
-		public FastDirect GetDirect(FastGlobalState* global, FastState* state, int player)
+		public static void Register()
+		{
+			Strategy.RegisterAi("sim_5_split", c => new SimulationAi(c, new Evaluation(c, new EvaluationArgs()), 5, true, new SimpleAi(c)));
+			Strategy.RegisterAi("sim_7_split", c => new SimulationAi(c, new Evaluation(c, new EvaluationArgs()), 7, true, new SimpleAi(c)));
+			Strategy.RegisterAi("sim_10_split", c => new SimulationAi(c, new Evaluation(c, new EvaluationArgs()), 10, true, new SimpleAi(c)));
+			Strategy.RegisterAi("sim_5", c => new SimulationAi(c, new Evaluation(c, new EvaluationArgs()), 5, false, new SimpleAi(c)));
+			Strategy.RegisterAi("sim_7", c => new SimulationAi(c, new Evaluation(c, new EvaluationArgs()), 7, false, new SimpleAi(c)));
+			Strategy.RegisterAi("sim_10", c => new SimulationAi(c, new Evaluation(c, new EvaluationArgs()), 10, false, new SimpleAi(c)));
+		}
+
+		public FastDirect GetDirect(FastGlobal* global, Simulator* state, int player)
 		{
 			//var stopwatch = Stopwatch.StartNew();
 			var targets = GetPossibleTargets(global, state, player);
@@ -79,7 +92,7 @@ namespace Game.Sim.Fast
 			return bestDirect;
 		}
 
-		private static List<FastPoint> GetPossibleTargets(FastGlobalState* global, FastState* state, int player)
+		private static List<FastPoint> GetPossibleTargets(FastGlobal* global, Simulator* state, int player)
 		{
 			var result = new List<FastPoint>();
 

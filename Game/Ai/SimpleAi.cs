@@ -1,17 +1,19 @@
 ﻿using Game.Protocol;
+using Game.Sim;
+using Game.Sim.Types;
 
-namespace Game.Sim.Fast
+namespace Game.Ai
 {
-	public unsafe class SimpleFastAi : IFastAi
+	public unsafe class SimpleAi : IAi
 	{
 		private readonly Config config;
 
-		public SimpleFastAi(Config config)
+		public SimpleAi(Config config)
 		{
 			this.config = config;
 		}
 
-		public FastDirect GetDirect(FastGlobalState* global, FastState* state, int player)
+		public FastDirect GetDirect(FastGlobal* global, Simulator* state, int player)
 		{
 			var minDist = double.PositiveInfinity;
 			var fragments = &state->fragments0 + player;

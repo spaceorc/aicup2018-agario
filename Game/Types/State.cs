@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Game.Helpers;
 using Game.Protocol;
-using Game.Types;
 
-namespace Game.Sim
+namespace Game.Types
 {
-	public class SimState
+	public class State
 	{
 		public class Actual<T>
 		{
@@ -22,7 +22,7 @@ namespace Game.Sim
 		public readonly Dictionary<int, Actual<Ejection>> ejections = new Dictionary<int, Actual<Ejection>>();
 		public readonly Dictionary<int, Dictionary<int, Actual<Player>>> players = new Dictionary<int, Dictionary<int, Actual<Player>>>();
 
-		public SimState(Config config)
+		public State(Config config)
 		{
 			this.config = config;
 		}

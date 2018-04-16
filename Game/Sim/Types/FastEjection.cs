@@ -6,7 +6,7 @@ using System.Text;
 using Game.Protocol;
 using Game.Types;
 
-namespace Game.Sim.Fast
+namespace Game.Sim.Types
 {
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct FastEjection
@@ -28,7 +28,7 @@ namespace Game.Sim.Fast
 			player = ejection.player;
 		}
 
-		public MovingPoint point;
+		public FastMovingPoint point;
 		public int player;
 
 		public override string ToString()

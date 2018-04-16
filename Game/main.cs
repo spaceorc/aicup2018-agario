@@ -2,7 +2,6 @@
 using Game.Helpers;
 using Game.Protocol;
 using Game.Strategies;
-using Newtonsoft.Json;
 
 namespace Game
 {
