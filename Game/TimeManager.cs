@@ -30,6 +30,8 @@ namespace Game
 			timeElapsed += stopwatch.ElapsedMilliseconds;
 			ticksPassed++;
 			millisPerTick = totalTicks == ticksPassed ? 0 : (totalTime - timeElapsed) / (totalTicks - ticksPassed);
+			if (millisPerTick > Settings.MAX_MILLIS_PER_TICK)
+				millisPerTick = Settings.MAX_MILLIS_PER_TICK;
 		}
 
 		public bool IsExpired => stopwatch.ElapsedMilliseconds >= millisPerTick;
