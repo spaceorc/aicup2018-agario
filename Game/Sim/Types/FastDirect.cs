@@ -11,7 +11,7 @@ namespace Game.Sim.Types
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct FastDirect
 	{
-		public const int size = FastPoint.size + 2 * sizeof(int);
+		public const int size = FastPoint.size + sizeof(double) + 2 * sizeof(int);
 
 		static FastDirect()
 		{
@@ -19,15 +19,17 @@ namespace Game.Sim.Types
 				throw new InvalidOperationException($"sizeof({nameof(FastDirect)})({sizeof(FastDirect)}) != {size}");
 		}
 
-		public FastDirect(double x, double y, bool split = false, bool eject = false)
+		public FastDirect(double x, double y, bool split = false, bool eject = false, double estimation = 0)
 		{
 			target.x = x;
 			target.y = y;
 			this.split = split ? 1 : 0;
 			this.eject = eject ? 1 : 0;
+			this.estimation = estimation;
 		}
 
 		public FastPoint target;
+		public double estimation;
 		public int split;
 		public int eject;
 
@@ -47,7 +49,7 @@ namespace Game.Sim.Types
 
 		public override string ToString()
 		{
-			return $"{target}{(split == 1 ? ", SPLIT" : "")}{(eject == 1 ? ", EJECT" : "")}";
+			return $"{target}{(split == 1 ? ", SPLIT" : "")}{(eject == 1 ? ", EJECT" : "")} => {estimation}";
 		}
 
 		public Direct ToDirect(Config config)

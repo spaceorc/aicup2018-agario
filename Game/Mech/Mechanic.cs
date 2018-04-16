@@ -378,9 +378,9 @@ namespace Game.Mech
 
 				var visibles = GetVisibles(fragments);
 
-				Direct direct = strategy.Value.TickEvent(fragments, visibles);
-
-				ApplyDirectFor(sId, direct);
+				var direct = strategy.Value.TickEvent(fragments, visibles);
+				if (direct != null)
+					ApplyDirectFor(sId, direct);
 			}
 		}
 

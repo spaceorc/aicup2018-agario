@@ -4,6 +4,6 @@ namespace Game
 {
 	public interface IStrategy
 	{
-		TurnOutput OnTick(TurnInput turnInput);
+		TurnOutput OnTick(TurnInput turnInput, TimeManager timeManager);
 	}
 }

@@ -12,15 +12,15 @@ namespace Game.Ai
 		private readonly IEvaluation evaluation;
 		private readonly int depth;
 		private readonly bool useSplit;
-		private readonly IAi enemyAi;
+		private readonly IAi simpleAi;
 
-		public SimulationAi(Config config, IEvaluation evaluation, int depth, bool useSplit, IAi enemyAi)
+		public SimulationAi(Config config, IEvaluation evaluation, int depth, bool useSplit, IAi simpleAi)
 		{
 			this.config = config;
 			this.evaluation = evaluation;
 			this.depth = depth;
 			this.useSplit = useSplit;
-			this.enemyAi = enemyAi;
+			this.simpleAi = simpleAi;
 		}
 
 		public static void Register()
@@ -33,9 +33,10 @@ namespace Game.Ai
 			Strategy.RegisterAi("sim_10", c => new SimulationAi(c, new Evaluation(c, new EvaluationArgs()), 10, false, new SimpleAi(c)));
 		}
 
-		public FastDirect GetDirect(FastGlobal* global, Simulator* state, int player)
+		public FastDirect GetDirect(FastGlobal* global, Simulator* state, int player, TimeManager timeManager)
 		{
-			//var stopwatch = Stopwatch.StartNew();
+			if (timeManager.BeStupid)
+				return simpleAi.GetDirect(global, state, player, timeManager);
 			var targets = GetPossibleTargets(global, state, player);
 			var fragments = &state->fragments0 + player;
 			var frag = (FastFragment*) fragments->data;
@@ -67,7 +68,7 @@ namespace Game.Ai
 								}
 								else
 								{
-									directs.Add(enemyAi.GetDirect(global, &clone, p));
+									directs.Add(simpleAi.GetDirect(global, &clone, p, timeManager));
 								}
 							}
 							clone.Tick(global, &directs, config);
@@ -86,8 +87,7 @@ namespace Game.Ai
 			}
 
 			bestDirect.Limit(config);
-			//stopwatch.Stop();
-			//Logger.Info($"Best score: {bestScore}. {stopwatch.ElapsedMilliseconds} ms");
+			bestDirect.estimation = bestScore;
 			Logger.Info($"Best score: {bestScore}");
 			return bestDirect;
 		}

@@ -13,7 +13,7 @@ namespace Game.Ai
 			this.config = config;
 		}
 
-		public FastDirect GetDirect(FastGlobal* global, Simulator* state, int player)
+		public FastDirect GetDirect(FastGlobal* global, Simulator* state, int player, TimeManager timeManager)
 		{
 			var minDist = double.PositiveInfinity;
 			var fragments = &state->fragments0 + player;

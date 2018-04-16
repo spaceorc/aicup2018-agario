@@ -19,6 +19,8 @@ namespace Game.Protocol
 
 		public static void WriteTurnInput(TurnOutput output)
 		{
+			if (output.Debug != null && output.Debug.Length > 1000)
+				output.Debug = output.Debug.Substring(0, 1000);
 			Console.WriteLine(JsonConvert.SerializeObject(output, new JsonSerializerSettings{Formatting = Formatting.None, NullValueHandling = NullValueHandling.Ignore}));
 		}
 	}

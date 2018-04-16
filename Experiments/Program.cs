@@ -88,7 +88,7 @@ namespace Experiments
 
 				var state = new Simulator(simState, 0);
 
-				var direct = ai.GetDirect(&global, &state, 0);
+				var direct = ai.GetDirect(&global, &state, 0, new TimeManager(config));
 
 				Console.Out.WriteLine(direct);
 			}

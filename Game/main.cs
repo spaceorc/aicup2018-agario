@@ -17,13 +17,16 @@ namespace Game
 			Logger.Info($"Config: {config.ToJson()}");
 
 			var strategy = StrategiesRegistry.Create(Settings.DefaultStrategy, config);
+			var timeManager = new TimeManager(config);
 			while (true)
 			{
 				Logger.Info("Waiting for data...");
 				var data = ConsoleProtocol.ReadTurnInput();
+				timeManager.TickStarted();
 				Logger.Info($"Data: {data.ToJson()}");
-				var command = strategy.OnTick(data);
+				var command = strategy.OnTick(data, timeManager);
 				Logger.Info($"Command: {command.ToJson()}");
+				timeManager.TickFinished();
 				ConsoleProtocol.WriteTurnInput(command);
 			}
 		}

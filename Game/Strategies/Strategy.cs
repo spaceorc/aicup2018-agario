@@ -19,6 +19,7 @@ namespace Game.Strategies
 		private const int CHECKPOINTS_LAST_AWAY_COUNT = 2;
 		private FastGlobal global;
 		private int nextCheckpoint;
+		private TimeManager timeManager;
 		private readonly State state;
 		private readonly Random random;
 		private readonly string checkpointsDebugInfo;
@@ -34,8 +35,9 @@ namespace Game.Strategies
 			checkpointsDebugInfo = GetCheckpointsDebugInfo();
 		}
 
-		public TurnOutput OnTick(TurnInput turnInput)
+		public TurnOutput OnTick(TurnInput turnInput, TimeManager timeManager)
 		{
+			this.timeManager = timeManager;
 			state.Apply(turnInput);
 			var direct = GetDirect() ?? new Direct(0, 0, config) { debug = "Accept defeat" };
 			return direct.ToOutput();
@@ -89,9 +91,10 @@ namespace Game.Strategies
 			PrepareGlobalTarget(&sim);
 			fixed (FastGlobal* g = &global)
 			{
-				var fastDirect = ai.GetDirect(g, &sim, 0);
+				var fastDirect = ai.GetDirect(g, &sim, 0, timeManager);
 				var direct = fastDirect.ToDirect(config);
-				direct.debug = $"{nextCheckpoint};{checkpointsDebugInfo}";
+				direct.debug = $"{(timeManager.BeStupid ? "STUPID! " : "")}{(timeManager.BeSmart ? "SMART! " : "")}{timeManager.Elapsed}/{timeManager.millisPerTick} ms; " +
+				               $"est: {fastDirect.estimation}; next: {nextCheckpoint}; cp: {checkpointsDebugInfo}";
 				return direct;
 			}
 		}
