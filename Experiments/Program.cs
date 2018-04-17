@@ -80,7 +80,7 @@ namespace Experiments
 				simState.Apply(prevTurnInput);
 				simState.Apply(turnInput);
 
-				var ai = new SimulationAi(config, new Evaluation(config, new EvaluationArgs()), 10, true,
+				var ai = new SimulationAi(config, new Evaluation(config, EvaluationArgs.CreateDefault()), 10, true,
 					new SimpleAi(config));
 
 				var global = new FastGlobal();
@@ -210,7 +210,7 @@ namespace Experiments
 				new PlayerStrategy(config, c => new Strategy(c, new SimpleAi(c))),
 				new PlayerStrategy(config, c => new Strategy(c, new SimpleAi(c))),
 				new PlayerStrategy(config, c => new Strategy(c, new SimpleAi(c))),
-				new PlayerStrategy(config, c => new Strategy(c, new SimulationAi(c, new Evaluation(c, new EvaluationArgs()), 10, false, new SimpleAi(c)))),
+				new PlayerStrategy(config, c => new Strategy(c, new SimulationAi(c, new Evaluation(c, EvaluationArgs.CreateDefault()), 10, false, new SimpleAi(c)))),
 			});
 			mechanic.Play();
 			foreach (var kvp in mechanic.playerScores)

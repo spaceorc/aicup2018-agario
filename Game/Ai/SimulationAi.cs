@@ -25,12 +25,10 @@ namespace Game.Ai
 
 		public static void Register()
 		{
-			Strategy.RegisterAi("sim_5_split", c => new SimulationAi(c, new Evaluation(c, new EvaluationArgs()), 5, true, new SimpleAi(c)));
-			Strategy.RegisterAi("sim_7_split", c => new SimulationAi(c, new Evaluation(c, new EvaluationArgs()), 7, true, new SimpleAi(c)));
-			Strategy.RegisterAi("sim_10_split", c => new SimulationAi(c, new Evaluation(c, new EvaluationArgs()), 10, true, new SimpleAi(c)));
-			Strategy.RegisterAi("sim_5", c => new SimulationAi(c, new Evaluation(c, new EvaluationArgs()), 5, false, new SimpleAi(c)));
-			Strategy.RegisterAi("sim_7", c => new SimulationAi(c, new Evaluation(c, new EvaluationArgs()), 7, false, new SimpleAi(c)));
-			Strategy.RegisterAi("sim_10", c => new SimulationAi(c, new Evaluation(c, new EvaluationArgs()), 10, false, new SimpleAi(c)));
+			Strategy.RegisterAi("sim_5_split", c => new SimulationAi(c, new Evaluation(c, EvaluationArgs.CreateDefault()), 5, true, new SimpleAi(c)));
+			Strategy.RegisterAi("sim_7_split", c => new SimulationAi(c, new Evaluation(c, EvaluationArgs.CreateDefault()), 7, true, new SimpleAi(c)));
+			Strategy.RegisterAi("sim_5_split_fixed", c => new SimulationAi(c, new FixedEvaluation(c, EvaluationArgs.CreateFixed()), 5, true, new SimpleAi(c)));
+			Strategy.RegisterAi("sim_7_split_fixed", c => new SimulationAi(c, new FixedEvaluation(c, EvaluationArgs.CreateFixed()), 7, true, new SimpleAi(c)));
 		}
 
 		public FastDirect GetDirect(FastGlobal* global, Simulator* state, int player, TimeManager timeManager)
