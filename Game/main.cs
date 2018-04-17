@@ -1,6 +1,4 @@
-﻿// todo fix enemies TTF
-// todo 
-
+﻿// todo fix stuck between two foods
 using System;
 using Game.Helpers;
 using Game.Protocol;

@@ -176,7 +176,7 @@ namespace Game.Types
 			var prev = act.item;
 			act.item = new Player(id, obj.X, obj.Y, obj.R, obj.M, fragmentId, config)
 			{
-				fuse_timer = 0 // todo for enemies: fuse_timer
+				fuse_timer = config.TICKS_TIL_FUSION
 			};
 			if (prev != null)
 			{
@@ -188,6 +188,7 @@ namespace Game.Types
 				act.item.isFast = act.item.speed > max_speed;
 				if (act.item.isFast)
 					act.item.ApplyViscosity(max_speed);
+				act.item.fuse_timer = prev.fuse_timer > 0 ? prev.fuse_timer - 1 : 0;
 			}
 		}
 	}
