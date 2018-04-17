@@ -1,4 +1,4 @@
-﻿// todo fix stuck between two foods
+﻿// todo fix simple strategy to account eating mindist to enemy
 using System;
 using Game.Helpers;
 using Game.Protocol;
