@@ -221,6 +221,8 @@ namespace Experiments
 
 		public static void Main()
 		{
+			Logger.enableConsole = false;
+			Logger.enableFile = false;
 			const int parallelizm = 4;
 			var strategies = StrategiesRegistry.Names;
 			var nameMaxLength = strategies.Max(s => s.Length);
