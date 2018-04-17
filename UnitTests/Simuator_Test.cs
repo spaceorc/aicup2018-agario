@@ -15,6 +15,17 @@ namespace UnitTests
 	public unsafe class Simuator_Test
 	{
 		[Test]
+		public void METHOD223()
+		{
+			Console.Out.WriteLine(new FastEjection());
+			Console.Out.WriteLine(new FastMovingPoint());
+			Console.Out.WriteLine(new FastDirect());
+			Console.Out.WriteLine(new FastFragment());
+			Console.Out.WriteLine(new FastPoint());
+			Console.Out.WriteLine(new FastVirus());
+		}
+
+		[Test]
 		public void METHOD()
 		{
 			var config = JsonConvert.DeserializeObject<Config>(

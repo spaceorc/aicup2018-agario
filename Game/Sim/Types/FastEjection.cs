@@ -11,12 +11,12 @@ namespace Game.Sim.Types
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct FastEjection
 	{
-		public const int size = sizeof(double) * 4 + sizeof(int);
+		public const int size = FastMovingPoint.size + 2*sizeof(int);
 
 		static FastEjection()
 		{
 			if (sizeof(FastEjection) != size)
-				throw new InvalidOperationException($"sizeof({nameof(FastEjection)}) != {size}");
+				throw new InvalidOperationException($"sizeof({nameof(FastEjection)})({sizeof(FastEjection)}) != {size}");
 		}
 
 		public FastEjection(Ejection ejection) : this()

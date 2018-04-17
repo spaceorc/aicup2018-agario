@@ -10,6 +10,12 @@ namespace Game.Sim.Types
 	{
 		public const int size = sizeof(double) * 5;
 
+		static FastMovingPoint()
+		{
+			if (sizeof(FastMovingPoint) != size)
+				throw new InvalidOperationException($"sizeof({nameof(FastMovingPoint)})({sizeof(FastMovingPoint)}) != {size}");
+		}
+
 		public double x;
 		public double y;
 		public double ndx;

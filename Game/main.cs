@@ -1,6 +1,7 @@
 ﻿using System;
 using Game.Helpers;
 using Game.Protocol;
+using Game.Sim.Types;
 using Game.Strategies;
 
 namespace Game
@@ -11,6 +12,15 @@ namespace Game
 		{
 			AppDomain.CurrentDomain.UnhandledException +=
 				(sender, eventArgs) => Logger.Error((Exception)eventArgs.ExceptionObject);
+
+			// check all sizes
+			new FastEjection();
+			new FastMovingPoint();
+			new FastDirect();
+			new FastFragment();
+			new FastPoint();
+			new FastVirus();
+
 			Logger.Info("Waiting for config...");
 
 			var config = ConsoleProtocol.ReadConfig();
