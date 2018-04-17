@@ -20,14 +20,57 @@ namespace Experiments
 {
 	internal unsafe class Program
 	{
-		public static void Main()
+		public static void Main121212()
+		{
+			Logger.enableFile = false;
+			Logger.enableConsole = true;
+			Logger.minLevel = Logger.Level.Info;
+
+			var dump = "D:\\Downloads\\173530_dump.log";
+			var lines = File.ReadAllLines(dump);
+
+			var config = JsonConvert.DeserializeObject<Config>(lines[0]);
+
+
+			{
+				var inputs = lines.SkipWhile(l => l != "T" + 1755).ToList();
+				var turnInputs = new List<TurnInput>();
+				for (int k = 0; k < 20; k++)
+				{
+					turnInputs.Add(JsonConvert.DeserializeObject<TurnInput>(inputs[k * 4 + 1]));
+				}
+
+				var ai = new SimulationAi(config, new FixedEvaluation(config, EvaluationArgs.CreateFixed()), 7, true,
+					new SimpleAi(config));
+
+				var global = new FastGlobal();
+				global.checkpoints.Add(0, 0);
+				
+				var simState = new State(config, true);
+				foreach (var turnInput in turnInputs)
+				{
+					simState.Apply(turnInput);
+					var state = new Simulator(simState, 0);
+					var direct = ai.GetDirect(&global, &state, 0, new TimeManager(config));
+					Console.Out.WriteLine(direct);
+				}
+			}
+		}
+
+		public static void Main_X()
 		{
 			Logger.enableFile = false;
 			Logger.enableConsole = true;
 			Logger.minLevel = Logger.Level.Debug;
 
+			var dump = "D:\\Downloads\\173530_dump.log";
+			var lines = File.ReadAllLines(dump);
+
 			var config = JsonConvert.DeserializeObject<Config>(
-				@"{""FOOD_MASS"":2.0415049631347149,""GAME_HEIGHT"":990,""GAME_TICKS"":7500,""GAME_WIDTH"":990,""INERTION_FACTOR"":6.7253483827918421,""MAX_FRAGS_CNT"":8,""SPEED_FACTOR"":83.56730029912967,""TICKS_TIL_FUSION"":312,""VIRUS_RADIUS"":36.676844946539276,""VIRUS_SPLIT_MASS"":60.196116704694184,""VISCOSITY"":0.33927016009766781}");
+				@"{""FOOD_MASS"":3.3367345502164101,""GAME_HEIGHT"":990,""GAME_TICKS"":7500,""GAME_WIDTH"":990,""INERTION_FACTOR"":15.098544076033486,""MAX_FRAGS_CNT"":7,""SPEED_FACTOR"":95.469368125824587,""TICKS_TIL_FUSION"":326,""VIRUS_RADIUS"":35.518560095127832,""VIRUS_SPLIT_MASS"":99.95162648148262,""VISCOSITY"":0.36555321345247982}");
+
+			//var config = JsonConvert.DeserializeObject<Config>(
+			//	@"{""FOOD_MASS"":3.3367345502164101,""GAME_HEIGHT"":990,""GAME_TICKS"":7500,""GAME_WIDTH"":990,""INERTION_FACTOR"":15.098544076033486,""MAX_FRAGS_CNT"":7,""SPEED_FACTOR"":95.469368125824587,""TICKS_TIL_FUSION"":326,""VIRUS_RADIUS"":35.518560095127832,""VIRUS_SPLIT_MASS"":99.95162648148262,""VISCOSITY"":0.36555321345247982}");
 
 
 			{
@@ -37,7 +80,7 @@ namespace Experiments
 				var turnInput = JsonConvert.DeserializeObject<TurnInput>(
 					@"{""Mine"":[{""Id"":""4"",""M"":212.25085222016239,""R"":29.137663064848724,""SX"":-2.2662482831309934,""SY"":1.1174611269795731,""X"":551.61189338464874,""Y"":621.02050471041696}],""Objects"":[{""Id"":""3.21"",""M"":137.93248032458411,""R"":23.488931889260876,""T"":""P"",""X"":484.10997748183672,""Y"":734.16999754100402},{""Id"":""3.19"",""M"":144.04740261607475,""R"":24.003949892971761,""T"":""P"",""X"":525.68488355219813,""Y"":675.6960918853764},{""Id"":""3.15"",""M"":140.41835494388062,""R"":23.69965020365327,""T"":""P"",""X"":440.65371047795225,""Y"":719.7462286521195},{""Id"":""2.19"",""M"":90.61927249392734,""R"":19.038831108440174,""T"":""P"",""X"":589.18054281487775,""Y"":506.94170278645095},{""Id"":""3.16"",""M"":203.53692127717326,""R"":28.533273298181072,""T"":""P"",""X"":447.15604267963499,""Y"":666.68175387296401},{""Id"":""3.18"",""M"":144.04740261607475,""R"":24.003949892971761,""T"":""P"",""X"":529.76933598599419,""Y"":633.18847789158281},{""Id"":""3.20"",""M"":137.93248032458411,""R"":23.488931889260876,""T"":""P"",""X"":540.00200897651791,""Y"":713.13677081364722},{""Id"":""22"",""M"":40,""T"":""V"",""X"":857.64631010692142,""Y"":190.35368989307855},{""Id"":""24"",""M"":40,""T"":""V"",""X"":132.35368989307855,""Y"":799.64631010692142},{""Id"":""265"",""M"":40,""T"":""V"",""X"":149.35368989307855,""Y"":292.35368989307858},{""Id"":""266"",""M"":40,""T"":""V"",""X"":840.64631010692142,""Y"":292.35368989307858},{""Id"":""267"",""M"":40,""T"":""V"",""X"":840.64631010692142,""Y"":697.64631010692142},{""Id"":""268"",""M"":40,""T"":""V"",""X"":149.35368989307855,""Y"":697.64631010692142},{""Id"":""509"",""M"":40,""T"":""V"",""X"":218.35368989307855,""Y"":100.35368989307855},{""Id"":""510"",""M"":40,""T"":""V"",""X"":771.64631010692142,""Y"":100.35368989307855},{""Id"":""511"",""M"":40,""T"":""V"",""X"":771.64631010692142,""Y"":889.64631010692142}]}");
 
-				var simState = new State(config);
+				var simState = new State(config, true);
 				simState.Apply(prevTurnInput);
 				simState.Apply(turnInput);
 
@@ -176,10 +219,10 @@ namespace Experiments
 				@"{""FOOD_MASS"":1.1699651787931546,""GAME_HEIGHT"":990,""GAME_TICKS"":7500,""GAME_WIDTH"":990,""INERTION_FACTOR"":18.311331992550009,""MAX_FRAGS_CNT"":4,""SPEED_FACTOR"":61.964198190568723,""TICKS_TIL_FUSION"":428,""VIRUS_RADIUS"":27.671011120486231,""VIRUS_SPLIT_MASS"":82.838148942917172,""VISCOSITY"":0.1961202661671938}");
 			var mechanic = new Mechanic(config, new List<PlayerStrategy>
 			{
-				new PlayerStrategy(config, c => new Strategy(c, new SimpleAi(c))),
-				new PlayerStrategy(config, c => new Strategy(c, new SimpleAi(c))),
-				new PlayerStrategy(config, c => new Strategy(c, new SimpleAi(c))),
-				new PlayerStrategy(config, c => new Strategy(c, new SimulationAi(c, new Evaluation(c, EvaluationArgs.CreateDefault()), 10, false, new SimpleAi(c)))),
+				new PlayerStrategy(config, c => new Strategy(c, new SimpleAi(c), true)),
+				new PlayerStrategy(config, c => new Strategy(c, new SimpleAi(c), true)),
+				new PlayerStrategy(config, c => new Strategy(c, new SimpleAi(c), true)),
+				new PlayerStrategy(config, c => new Strategy(c, new SimulationAi(c, new Evaluation(c, EvaluationArgs.CreateDefault()), 10, false, new SimpleAi(c)), true)),
 			});
 			mechanic.Play();
 			foreach (var kvp in mechanic.playerScores)
@@ -188,7 +231,8 @@ namespace Experiments
 			}
 		}
 
-		public static void Mainфыв()
+		// brutal tester
+		public static void Main()
 		{
 			Logger.enableConsole = false;
 			Logger.enableFile = false;

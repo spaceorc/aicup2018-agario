@@ -24,10 +24,10 @@ namespace Game.Strategies
 		private readonly Random random;
 		private readonly string checkpointsDebugInfo;
 
-		public Strategy(Config config, IAi ai)
+		public Strategy(Config config, IAi ai, bool supportFoodStuckEscape)
 		{
 			this.config = config;
-			state = new State(config);
+			state = new State(config, supportFoodStuckEscape);
 			random = new Random();
 			this.ai = ai;
 			for (var i = 0; i < CHECKPOINTS_COUNT; i++)
@@ -45,7 +45,8 @@ namespace Game.Strategies
 
 		public static void RegisterAi(string name, Func<Config, IAi> createAi)
 		{
-			StrategiesRegistry.Register(name, c => new Strategy(c, createAi(c)));
+			StrategiesRegistry.Register(name, c => new Strategy(c, createAi(c), false));
+			StrategiesRegistry.Register(name + "_noFoodStuck", c => new Strategy(c, createAi(c), true));
 		}
 
 		public static void Register()

@@ -72,6 +72,7 @@ namespace Game.Ai
 								minDist = qdist;
 								source = frag;
 								target = (FastPoint*)efrag;
+								// todo target = target + speed
 								awayTarget = null;
 							}
 							else if (efrag->Eatable(frag))

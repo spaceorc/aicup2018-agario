@@ -29,7 +29,7 @@ namespace Game.Sim
 			var myFragments = state.players[state.myId];
 			if (!myFragments.Any())
 				return;
-			foreach (var food in state.foods.Values.OrderBy(x => myFragments.Min(f => f.Value.item.QDistance(x.item))).Take(FastPoint.List.capacity))
+			foreach (var food in state.foods.Values.Where(x => !x.ban).OrderBy(x => myFragments.Min(f => f.Value.item.QDistance(x.item))).Take(FastPoint.List.capacity))
 				foods.Add(new FastPoint(food.item));
 			foreach (var ejection in state.ejections.Values.OrderBy(x => myFragments.Min(f => f.Value.item.QDistance(x.item))).Take(FastEjection.List.capacity))
 				ejections.Add(new FastEjection(ejection.item));
