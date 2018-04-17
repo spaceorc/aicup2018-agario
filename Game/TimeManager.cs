@@ -16,7 +16,7 @@ namespace Game
 		{
 			totalTime = config.GAME_TICKS * Settings.MILLIS_PER_TICK;
 			totalTicks = config.GAME_TICKS;
-			millisPerTick = Settings.MILLIS_PER_TICK;
+			millisPerTick = Settings.MILLIS_PER_TICK - 2;
 		}
 
 		public void TickStarted()
@@ -27,7 +27,7 @@ namespace Game
 		public void TickFinished()
 		{
 			stopwatch.Stop();
-			timeElapsed += stopwatch.ElapsedMilliseconds;
+			timeElapsed += stopwatch.ElapsedMilliseconds + 2;
 			ticksPassed++;
 			millisPerTick = totalTicks == ticksPassed ? 0 : (totalTime - timeElapsed) / (totalTicks - ticksPassed);
 			if (millisPerTick > Settings.MAX_MILLIS_PER_TICK)

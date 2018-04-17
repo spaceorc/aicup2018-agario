@@ -1,4 +1,7 @@
-﻿using System;
+﻿// todo fix enemies TTF
+// todo 
+
+using System;
 using Game.Helpers;
 using Game.Protocol;
 using Game.Sim.Types;
