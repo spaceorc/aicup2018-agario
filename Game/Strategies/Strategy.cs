@@ -77,8 +77,8 @@ namespace Game.Strategies
 				while (true)
 				{
 					var nextGlobalTarget = new Point(
-						config.GAME_WIDTH / 10 + random.NextDouble() * config.GAME_WIDTH * 8 / 10,
-						config.GAME_HEIGHT / 10 + random.NextDouble() * config.GAME_HEIGHT * 8 / 10);
+						config.GAME_WIDTH / 20 + random.NextDouble() * config.GAME_WIDTH * 18 / 20,
+						config.GAME_HEIGHT / 20 + random.NextDouble() * config.GAME_HEIGHT * 18 / 20);
 					if (awayPoints.All(p => p.Distance(nextGlobalTarget) > minDiffDist))
 						return new FastPoint(nextGlobalTarget.x, nextGlobalTarget.y);
 				}
