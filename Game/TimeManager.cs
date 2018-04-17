@@ -16,7 +16,7 @@ namespace Game
 		{
 			totalTime = config.GAME_TICKS * Settings.MILLIS_PER_TICK;
 			totalTicks = config.GAME_TICKS;
-			millisPerTick = Settings.MILLIS_PER_TICK - 2;
+			millisPerTick = Settings.MILLIS_PER_TICK - 3;
 		}
 
 		public void TickStarted()
@@ -27,18 +27,18 @@ namespace Game
 		public void TickFinished()
 		{
 			stopwatch.Stop();
-			timeElapsed += stopwatch.ElapsedMilliseconds + 2;
+			timeElapsed += Elapsed;
 			ticksPassed++;
 			millisPerTick = totalTicks == ticksPassed ? 0 : (totalTime - timeElapsed) / (totalTicks - ticksPassed);
 			if (millisPerTick > Settings.MAX_MILLIS_PER_TICK)
 				millisPerTick = Settings.MAX_MILLIS_PER_TICK;
 		}
 
-		public bool IsExpired => stopwatch.ElapsedMilliseconds >= millisPerTick;
+		public bool IsExpired => Elapsed >= millisPerTick;
 		public bool BeStupid => millisPerTick <= Settings.BE_STUPID_MILLIS_PER_TICK;
 		public bool BeSmart => millisPerTick >= Settings.BE_SMART_MILLIS_PER_TICK;
 		public bool IsExpiredGlobal => timeElapsed > totalTime;
-		public long Elapsed => stopwatch.ElapsedMilliseconds;
+		public long Elapsed => stopwatch.ElapsedMilliseconds + 3;
 
 		public override string ToString()
 		{
