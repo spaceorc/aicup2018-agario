@@ -120,113 +120,113 @@ namespace Experiments
 				Console.Out.WriteLine(direct);
 			}
 		}
-
-		public static void Main123123()
-		{
-			Logger.minLevel = Logger.Level.Debug;
-
-			var config = JsonConvert.DeserializeObject<Config>(
-				@"{""GAME_HEIGHT"":660,""GAME_WIDTH"":660,""GAME_TICKS"":75000,""FOOD_MASS"":1.0,""MAX_FRAGS_CNT"":10,""TICKS_TIL_FUSION"":250,""VIRUS_RADIUS"":22.0,""VIRUS_SPLIT_MASS"":80.0,""VISCOSITY"":0.25,""INERTION_FACTOR"":10.0,""SPEED_FACTOR"":25.0}");
-
-			var turnInput = JsonConvert.DeserializeObject<TurnInput>(
-				@"{""Mine"":[{""Id"":""1"",""X"":282.764659119549,""Y"":255.00047968359704,""SX"":2.3029305366512363,""SY"":1.1739094325097006,""R"":12.649110640673518,""M"":40.0,""TTF"":3014700}],""Objects"":[{""Id"":null,""pId"":null,""T"":""F"",""X"":299.0,""Y"":225.0,""R"":0.0,""M"":0.0}]}");
-
-			//var gaStrategy = new GAStrategy(config);
-			//var turnOutput1 = gaStrategy.OnTick(turnInput);
-			//Console.Out.WriteLine(JsonConvert.SerializeObject(turnOutput1));
-
-			var log = new DirectoryInfo(FileHelper.PatchDirectoryName("logs")).GetFiles("*.txt").OrderBy(x => x.Name).Select(x => x.FullName).Last();
-
-			var bitmap = new Bitmap(config.GAME_WIDTH, config.GAME_HEIGHT);
-			using (var graphics = Graphics.FromImage(bitmap))
-			{
-				foreach (var mine in turnInput.Mine)
-				{
-					Draw(mine.X, mine.Y, mine.R, Color.Green);
-				}
-
-				var colors = new Dictionary<string, Color>
-				{
-					{"F", Color.Magenta},
-					{"E", Color.Red},
-				};
-				foreach (var obj in turnInput.Objects)
-				{
-					Draw((int) obj.X, (int) obj.Y, obj.R, colors[obj.T]);
-				}
-
-				var lineColors = new[] {Color.Blue, Color.Red, Color.Wheat, Color.CornflowerBlue, Color.DarkOliveGreen, Color.DarkOrchid, Color.GreenYellow };
-
-				var lines = File.ReadAllLines(log);
-
-				var routes = new List<(double score, double[] genome, List<Point> route)>();
-				Point cur;
-				
-				foreach (var line in lines)
-				{
-					if (line.IndexOf("BEFORE: ") >= 0)
-					{
-						cur = new Point(turnInput.Mine[0].X, turnInput.Mine[0].Y);
-						routes.Add((0, null, new List<Point> { cur }));
-					}
-					else if (line.IndexOf("GROUP: ") >= 0)
-					{
-						var nexts = line.Substring(line.IndexOf("GROUP: ") + "GROUP: ".Length).Split(' ');
-						var x = double.Parse(nexts[0]);
-						var y = double.Parse(nexts[1]);
-						var next = new Point(x, y);
-						routes.Last().route.Add(next);
-						cur = next;
-					}else if (line.IndexOf("AFTER: ") >= 0)
-					{
-						var ss = line.Substring(line.IndexOf("AFTER: ") + "AFTER: ".Length).Split(' ');
-						var score = double.Parse(ss[0]);
-						var genome = ss.Skip(1).Select(double.Parse).ToArray();
-						routes.Add((score, genome, routes.Last().route));
-						routes.RemoveAt(routes.Count - 2);
-					}
-				}
-
-				var l = 0;
-				//foreach (var r in routes.OrderByDescending(x => x.score).Take(7))
-				foreach (var r in routes.Take(7))
-				{
-					var route = r.route;
-					l = (l + 1) % lineColors.Length;
-					for (int i = 0; i < route.Count - 1; i++)
-					{
-						using (var pen = new Pen(lineColors[l]))
-							graphics.DrawLine(pen, (int)route[i].x, (int)route[i].y, (int)route[i+1].x, (int)route[i+1].y);
-					}
-				}
-
-				foreach (var gline in lines.Where(ll => ll.IndexOf("GLOBAL: ") >= 0))
-				{
-					var gs = gline.Substring(gline.IndexOf("GLOBAL: ") + "GLOBAL: ".Length).Split(' ');
-					Draw(double.Parse(gs[0]), double.Parse(gs[1]), 5, Color.DarkSalmon);
-					Draw(double.Parse(gs[0]), double.Parse(gs[1]), 4, Color.DarkSalmon);
-					Draw(double.Parse(gs[0]), double.Parse(gs[1]), 3, Color.DarkSalmon);
-					Draw(double.Parse(gs[0]), double.Parse(gs[1]), 2, Color.DarkSalmon);
-				}
-
-
-				void Draw(double x, double y, double radius, Color color)
-				{
-					radius = Math.Max(radius, 3);
-					using (var pen = new Pen(color))
-						graphics.DrawEllipse(pen, (int) (x - radius), (int) (y - radius), (int) radius*2, (int) radius*2);
-				}
-			}
-
-			bitmap.Save(log + "-first.jpg");
-
-
-			/*gaStrategy = new GAStrategy(config);
-			var turnOutput2 = gaStrategy.OnTick(turnInput);*/
-
-			
-			//Console.Out.WriteLine(JsonConvert.SerializeObject(turnOutput2));
-		}
+//
+//		public static void Main123123()
+//		{
+//			Logger.minLevel = Logger.Level.Debug;
+//
+//			var config = JsonConvert.DeserializeObject<Config>(
+//				@"{""GAME_HEIGHT"":660,""GAME_WIDTH"":660,""GAME_TICKS"":75000,""FOOD_MASS"":1.0,""MAX_FRAGS_CNT"":10,""TICKS_TIL_FUSION"":250,""VIRUS_RADIUS"":22.0,""VIRUS_SPLIT_MASS"":80.0,""VISCOSITY"":0.25,""INERTION_FACTOR"":10.0,""SPEED_FACTOR"":25.0}");
+//
+//			var turnInput = JsonConvert.DeserializeObject<TurnInput>(
+//				@"{""Mine"":[{""Id"":""1"",""X"":282.764659119549,""Y"":255.00047968359704,""SX"":2.3029305366512363,""SY"":1.1739094325097006,""R"":12.649110640673518,""M"":40.0,""TTF"":3014700}],""Objects"":[{""Id"":null,""pId"":null,""T"":""F"",""X"":299.0,""Y"":225.0,""R"":0.0,""M"":0.0}]}");
+//
+//			//var gaStrategy = new GAStrategy(config);
+//			//var turnOutput1 = gaStrategy.OnTick(turnInput);
+//			//Console.Out.WriteLine(JsonConvert.SerializeObject(turnOutput1));
+//
+//			var log = new DirectoryInfo(FileHelper.PatchDirectoryName("logs")).GetFiles("*.txt").OrderBy(x => x.Name).Select(x => x.FullName).Last();
+//
+//			var bitmap = new Bitmap(config.GAME_WIDTH, config.GAME_HEIGHT);
+//			using (var graphics = Graphics.FromImage(bitmap))
+//			{
+//				foreach (var mine in turnInput.Mine)
+//				{
+//					Draw(mine.X, mine.Y, mine.R, Color.Green);
+//				}
+//
+//				var colors = new Dictionary<string, Color>
+//				{
+//					{"F", Color.Magenta},
+//					{"E", Color.Red},
+//				};
+//				foreach (var obj in turnInput.Objects)
+//				{
+//					Draw((int) obj.X, (int) obj.Y, obj.R, colors[obj.T]);
+//				}
+//
+//				var lineColors = new[] {Color.Blue, Color.Red, Color.Wheat, Color.CornflowerBlue, Color.DarkOliveGreen, Color.DarkOrchid, Color.GreenYellow };
+//
+//				var lines = File.ReadAllLines(log);
+//
+//				var routes = new List<(double score, double[] genome, List<Point> route)>();
+//				Point cur;
+//				
+//				foreach (var line in lines)
+//				{
+//					if (line.IndexOf("BEFORE: ") >= 0)
+//					{
+//						cur = new Point(turnInput.Mine[0].X, turnInput.Mine[0].Y);
+//						routes.Add((0, null, new List<Point> { cur }));
+//					}
+//					else if (line.IndexOf("GROUP: ") >= 0)
+//					{
+//						var nexts = line.Substring(line.IndexOf("GROUP: ") + "GROUP: ".Length).Split(' ');
+//						var x = double.Parse(nexts[0]);
+//						var y = double.Parse(nexts[1]);
+//						var next = new Point(x, y);
+//						routes.Last().route.Add(next);
+//						cur = next;
+//					}else if (line.IndexOf("AFTER: ") >= 0)
+//					{
+//						var ss = line.Substring(line.IndexOf("AFTER: ") + "AFTER: ".Length).Split(' ');
+//						var score = double.Parse(ss[0]);
+//						var genome = ss.Skip(1).Select(double.Parse).ToArray();
+//						routes.Add((score, genome, routes.Last().route));
+//						routes.RemoveAt(routes.Count - 2);
+//					}
+//				}
+//
+//				var l = 0;
+//				//foreach (var r in routes.OrderByDescending(x => x.score).Take(7))
+//				foreach (var r in routes.Take(7))
+//				{
+//					var route = r.route;
+//					l = (l + 1) % lineColors.Length;
+//					for (int i = 0; i < route.Count - 1; i++)
+//					{
+//						using (var pen = new Pen(lineColors[l]))
+//							graphics.DrawLine(pen, (int)route[i].x, (int)route[i].y, (int)route[i+1].x, (int)route[i+1].y);
+//					}
+//				}
+//
+//				foreach (var gline in lines.Where(ll => ll.IndexOf("GLOBAL: ") >= 0))
+//				{
+//					var gs = gline.Substring(gline.IndexOf("GLOBAL: ") + "GLOBAL: ".Length).Split(' ');
+//					Draw(double.Parse(gs[0]), double.Parse(gs[1]), 5, Color.DarkSalmon);
+//					Draw(double.Parse(gs[0]), double.Parse(gs[1]), 4, Color.DarkSalmon);
+//					Draw(double.Parse(gs[0]), double.Parse(gs[1]), 3, Color.DarkSalmon);
+//					Draw(double.Parse(gs[0]), double.Parse(gs[1]), 2, Color.DarkSalmon);
+//				}
+//
+//
+//				void Draw(double x, double y, double radius, Color color)
+//				{
+//					radius = Math.Max(radius, 3);
+//					using (var pen = new Pen(color))
+//						graphics.DrawEllipse(pen, (int) (x - radius), (int) (y - radius), (int) radius*2, (int) radius*2);
+//				}
+//			}
+//
+//			bitmap.Save(log + "-first.jpg");
+//
+//
+//			/*gaStrategy = new GAStrategy(config);
+//			var turnOutput2 = gaStrategy.OnTick(turnInput);*/
+//
+//			
+//			//Console.Out.WriteLine(JsonConvert.SerializeObject(turnOutput2));
+//		}
 
 		public static void Main45()
 		{
