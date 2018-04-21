@@ -19,6 +19,7 @@ namespace Game.Strategies
 		private const int CHECKPOINTS_LAST_AWAY_COUNT = 2;
 		private FastGlobal global;
 		private int nextCheckpoint;
+		private int nextCheckpointCounter;
 		private TimeManager timeManager;
 		private readonly State state;
 		private readonly Random random;
@@ -78,8 +79,8 @@ namespace Game.Strategies
 				while (true)
 				{
 					var nextGlobalTarget = new Point(
-						config.GAME_WIDTH / 20 + random.NextDouble() * config.GAME_WIDTH * 18 / 20,
-						config.GAME_HEIGHT / 20 + random.NextDouble() * config.GAME_HEIGHT * 18 / 20);
+						config.GAME_WIDTH / 10 + random.NextDouble() * config.GAME_WIDTH * 8 / 10,
+						config.GAME_HEIGHT / 10 + random.NextDouble() * config.GAME_HEIGHT * 8 / 10);
 					if (awayPoints.All(p => p.Distance(nextGlobalTarget) > minDiffDist))
 						return new FastPoint(nextGlobalTarget.x, nextGlobalTarget.y);
 				}
@@ -122,7 +123,22 @@ namespace Game.Strategies
 			{
 				sim->nextCheckpoint = nextCheckpoint;
 				if (sim->UpdateNextCheckpoint(g))
-					nextCheckpoint = sim->nextCheckpoint;
+				{
+					if (nextCheckpoint != sim->nextCheckpoint)
+					{
+						nextCheckpoint = sim->nextCheckpoint;
+						nextCheckpointCounter = 0;
+					}
+					else
+					{
+						nextCheckpointCounter++;
+						if (nextCheckpointCounter >= Settings.CHECKPOINT_GAIN_TICKS_LIMIT)
+						{
+							nextCheckpoint = (nextCheckpoint + 1) % g->checkpoints.count;
+							nextCheckpointCounter = 0;
+						}
+					}
+				}
 			}
 		}
 	}

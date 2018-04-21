@@ -3,6 +3,7 @@
 	// pack: 0
 	public static class Settings
 	{
+		public const int CHECKPOINT_GAIN_TICKS_LIMIT = 100;
 		public const int FOOD_FORGET_TICKS = 20; // todo increase? this constant
 		public const int ENEMY_FORGET_TICKS = 20; // todo increase? this constant
 		public const int MILLIS_PER_TICK = 24;

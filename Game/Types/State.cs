@@ -82,7 +82,11 @@ namespace Game.Types
 				{
 					if (!fragments.Any(f => f.Value.item.CanSee(kvpp.Value.item)))
 						if (kvpp.Value.tick >= tick - Settings.ENEMY_FORGET_TICKS)
+						{
+							if (kvpp.Value.item.fuse_timer > 0)
+								kvpp.Value.item.fuse_timer--;
 							continue;
+						}
 
 					kvp.Value.Remove(kvpp);
 				}
@@ -196,7 +200,7 @@ namespace Game.Types
 
 		private void AddOrUpdateEjection(TurnInput.ObjectData obj)
 		{
-			var id = (int) obj.Y * config.GAME_WIDTH + (int) obj.X;
+			var id = int.Parse(obj.Id);
 			var pid = int.Parse(obj.pId);
 			var act = ejections.GetOrAdd(id);
 			act.tick = tick;
