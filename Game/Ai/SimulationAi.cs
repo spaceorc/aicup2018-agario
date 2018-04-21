@@ -35,7 +35,7 @@ namespace Game.Ai
 		{
 			if (timeManager.BeStupid)
 				return simpleAi.GetDirect(global, state, player, timeManager);
-			var targets = stackalloc FastPoint[16 * 12];
+			var targets = stackalloc FastPoint[16 * 10];
 			var targetsCount = 0;
 			GetPossibleTargets(global, state, player, targets, ref targetsCount);
 			var fragments = &state->fragments0 + player;
