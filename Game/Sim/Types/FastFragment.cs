@@ -28,6 +28,7 @@ namespace Game.Sim.Types
 		public double ndy;
 		public int fuse_timer;
 		public int isFast;
+		private const double RADIUS_EAT_FACTOR = 2 * Constants.DIAM_EAT_FACTOR - 1;
 
 		public FastFragment(Player player) : this()
 		{
@@ -53,21 +54,21 @@ namespace Game.Sim.Types
 			if (isFast == 1)
 				return;
 
-			double speed_x = speed * ndx;
-			double speed_y = speed * ndy;
-			double max_speed = config.SPEED_FACTOR / Math.Sqrt(mass);
+			var speed_x = speed * ndx;
+			var speed_y = speed * ndy;
+			var max_speed = config.SPEED_FACTOR / Math.Sqrt(mass);
 
 			double dy = direct->target.y - y, dx = direct->target.x - x;
-			double dist = Math.Sqrt(dx * dx + dy * dy);
-			double ny = dist > 0 ? dy / dist : 0;
-			double nx = dist > 0 ? dx / dist : 0;
-			double inertion = config.INERTION_FACTOR;
+			var dist = Math.Sqrt(dx * dx + dy * dy);
+			var ny = dist > 0 ? dy / dist : 0;
+			var nx = dist > 0 ? dx / dist : 0;
+			var inertion = config.INERTION_FACTOR;
 
 			speed_x += (nx * max_speed - speed_x) * inertion / mass;
 			speed_y += (ny * max_speed - speed_y) * inertion / mass;
 
 
-			double new_speed = Math.Sqrt(speed_x * speed_x + speed_y * speed_y);
+			var new_speed = Math.Sqrt(speed_x * speed_x + speed_y * speed_y);
 			ndx = speed_x / new_speed;
 			ndy = speed_y / new_speed;
 
@@ -114,10 +115,10 @@ namespace Game.Sim.Types
 				fixed (byte* d = data)
 				{
 					var a = (FastFragment*) d;
-					for (int i = 0; i < count - 1; i++, a++)
+					for (var i = 0; i < count - 1; i++, a++)
 					{
 						var b = a + 1;
-						for (int k = i + 1; k < count; k++, b++)
+						for (var k = i + 1; k < count; k++, b++)
 						{
 							var cmp = Compare(a, b);
 							if (cmp > 0)
@@ -148,8 +149,8 @@ namespace Game.Sim.Types
 			double rB = x + radius, lB = x - radius;
 			double dB = y + radius, uB = y - radius;
 
-			double dx = speed * ndx;
-			double dy = speed * ndy;
+			var dx = speed * ndx;
+			var dy = speed * ndy;
 
 			if (rB + dx < config.GAME_WIDTH && lB + dx > 0)
 			{
@@ -160,7 +161,7 @@ namespace Game.Sim.Types
 				// долетаем до стенки
 				x = Math.Max(radius, Math.Min(config.GAME_WIDTH - radius, x + dx));
 				// зануляем проекцию скорости по dx
-				double speed_y = speed * ndy;
+				var speed_y = speed * ndy;
 				speed = Math.Abs(speed_y);
 				ndx = 0;
 				ndy = speed_y >= 0 ? 1 : -1;
@@ -174,7 +175,7 @@ namespace Game.Sim.Types
 				// долетаем до стенки
 				y = Math.Max(radius, Math.Min(config.GAME_HEIGHT - radius, y + dy));
 				// зануляем проекцию скорости по dy
-				double speed_x = speed * ndx;
+				var speed_x = speed * ndx;
 				speed = Math.Abs(speed_x);
 				ndy = 0;
 				ndx = speed_x >= 0 ? 1 : -1;
@@ -182,7 +183,7 @@ namespace Game.Sim.Types
 
 			if (isFast == 1)
 			{
-				double max_speed = config.SPEED_FACTOR / Math.Sqrt(mass);
+				var max_speed = config.SPEED_FACTOR / Math.Sqrt(mass);
 				// если на этом тике не снизим скорость достаточно - летим дальше
 				if (speed - config.VISCOSITY > max_speed)
 				{
@@ -264,35 +265,41 @@ namespace Game.Sim.Types
 			{ // do not collide splits
 				return;
 			}
-			double dist = Distance(other);
-			if (dist >= radius + other->radius)
-			{
-				return;
-			}
 
+			var nr = radius + other->radius;
 			// vector from centers
-			double collisionVectorX = x - other->x;
-			double collisionVectorY = y - other->y;
+			var collisionVectorX = x - other->x;
+			var collisionVectorY = y - other->y;
+			if (Math.Abs(collisionVectorX) >= nr || Math.Abs(collisionVectorY) >= nr)
+				return;
+
+			var qdist = collisionVectorX * collisionVectorX + collisionVectorY * collisionVectorY;
+			if (qdist >= nr * nr)
+				return;
+
 			// normalize to 1
-			double vectorLen = Math.Sqrt(collisionVectorX * collisionVectorX + collisionVectorY * collisionVectorY);
-			if (vectorLen < 1e-9)
+			const double eps = 1e-9*1e-9;
+			if (qdist < eps)
 			{ // collision object in same point??
 				return;
 			}
-			collisionVectorX /= vectorLen;
-			collisionVectorY /= vectorLen;
 
-			double collisionForce = 1.0 - dist / (radius + other->radius);
+			var dist = Math.Sqrt(qdist);
+
+			collisionVectorX /= dist;
+			collisionVectorY /= dist;
+
+			var collisionForce = 1.0 - dist / nr;
 			collisionForce *= collisionForce;
 			collisionForce *= Constants.COLLISION_POWER;
 
-			double sumMass = mass + other->mass;
+			var sumMass = mass + other->mass;
 			// calc influence on us
 			{
-				double currPart = other->mass / sumMass; // more influence on us if other bigger and vice versa
+				var currPart = other->mass / sumMass; // more influence on us if other bigger and vice versa
 
-				double dx = speed * ndx;
-				double dy = speed * ndy;
+				var dx = speed * ndx;
+				var dy = speed * ndy;
 				dx += collisionForce * currPart * collisionVectorX;
 				dy += collisionForce * currPart * collisionVectorY;
 				speed = Math.Sqrt(dx * dx + dy * dy);
@@ -302,10 +309,10 @@ namespace Game.Sim.Types
 
 			// calc influence on other
 			{
-				double otherPart = mass / sumMass;
+				var otherPart = mass / sumMass;
 
-				double dx = other->speed * other->ndx;
-				double dy = other->speed * other->ndy;
+				var dx = other->speed * other->ndx;
+				var dy = other->speed * other->ndy;
 				dx -= collisionForce * otherPart * collisionVectorX;
 				dy -= collisionForce * otherPart * collisionVectorY;
 				other->speed = Math.Sqrt(dx * dx + dy * dy);
@@ -331,9 +338,10 @@ namespace Game.Sim.Types
 		{
 			if (Eatable(frag))
 			{
-				double dist = Distance(frag);
-				if (dist - frag->radius + frag->radius * 2 * Constants.DIAM_EAT_FACTOR < radius)
-					return radius - dist;
+				var qdist = QDistance(frag);
+				var nr = radius - frag->radius * RADIUS_EAT_FACTOR;
+				if (qdist < nr * nr)
+					return radius - Math.Sqrt(qdist);
 			}
 
 			return double.NegativeInfinity;
@@ -344,9 +352,10 @@ namespace Game.Sim.Types
 		{
 			if (mass > config.FOOD_MASS * Constants.MASS_EAT_FACTOR)
 			{
-				double dist = Distance(food);
-				if (dist - Constants.FOOD_RADIUS + Constants.FOOD_RADIUS * 2 * Constants.DIAM_EAT_FACTOR < radius)
-					return radius - dist;
+				var qdist = QDistance(food);
+				var nr = radius - Constants.FOOD_RADIUS * RADIUS_EAT_FACTOR;
+				if (qdist < nr * nr)
+					return radius - Math.Sqrt(qdist);
 			}
 
 			return double.NegativeInfinity;
@@ -357,9 +366,10 @@ namespace Game.Sim.Types
 		{
 			if (mass > Constants.EJECT_MASS * Constants.MASS_EAT_FACTOR)
 			{
-				double dist = Distance(eject);
-				if (dist - Constants.EJECT_RADIUS + Constants.EJECT_RADIUS * 2 * Constants.DIAM_EAT_FACTOR < radius)
-					return radius - dist;
+				var qdist = QDistance(eject);
+				var nr = radius - Constants.EJECT_RADIUS * RADIUS_EAT_FACTOR;
+				if (qdist < nr * nr)
+					return radius - Math.Sqrt(qdist);
 			}
 
 			return double.NegativeInfinity;
@@ -399,8 +409,8 @@ namespace Game.Sim.Types
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public FastFragment SplitNow(Config config)
 		{
-			double new_mass = mass / 2;
-			double new_radius = Mass2Radius(new_mass);
+			var new_mass = mass / 2;
+			var new_radius = Mass2Radius(new_mass);
 
 			var new_player = new FastFragment
 			{
@@ -436,22 +446,24 @@ namespace Game.Sim.Types
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool CanFuse(FastFragment* frag)
 		{
-			double dist = Distance(frag);
-			double nR = radius + frag->radius;
-			return fuse_timer == 0 && frag->fuse_timer == 0 && dist <= nR;
+			if (fuse_timer != 0 || frag->fuse_timer != 0)
+				return false;
+			var qdist = QDistance(frag);
+			var nR = radius + frag->radius;
+			return qdist <= nR * nR;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void Fusion(FastFragment* frag)
 		{
-			double fragDX = frag->speed * frag->ndx;
-			double fragDY = frag->speed * frag->ndy;
-			double dX = speed * ndx;
-			double dY = speed * ndy;
-			double sumMass = mass + frag->mass;
+			var fragDX = frag->speed * frag->ndx;
+			var fragDY = frag->speed * frag->ndy;
+			var dX = speed * ndx;
+			var dY = speed * ndy;
+			var sumMass = mass + frag->mass;
 
-			double fragInfluence = frag->mass / sumMass;
-			double currInfluence = mass / sumMass;
+			var fragInfluence = frag->mass / sumMass;
+			var currInfluence = mass / sumMass;
 
 			// center with both parts influence
 			x = x * currInfluence + frag->x * fragInfluence;
@@ -481,7 +493,7 @@ namespace Game.Sim.Types
 			if (mass < Constants.MIN_BURST_MASS * 2)
 				return false;
 
-			int fragsCnt = (int)(mass / Constants.MIN_BURST_MASS);
+			var fragsCnt = (int)(mass / Constants.MIN_BURST_MASS);
 			if (fragsCnt > 1 && RestFragmentsCount(yet_cnt, config) > 0)
 				return true;
 
@@ -491,9 +503,11 @@ namespace Game.Sim.Types
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void UpdateByMass(Config config)
 		{
-			radius = Mass2Radius(mass);
+			var mass_sq = Math.Sqrt(mass);
 
-			double new_speed = config.SPEED_FACTOR / Math.Sqrt(mass);
+			radius = Constants.PLAYER_RADIUS_FACTOR * mass_sq;
+
+			var new_speed = config.SPEED_FACTOR / mass_sq;
 			if (speed > new_speed && isFast == 0)
 				speed = new_speed;
 
@@ -506,17 +520,17 @@ namespace Game.Sim.Types
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void BurstNow(List* fragments, Config config)
 		{
-			int new_frags_cnt = (int)(mass / Constants.MIN_BURST_MASS) - 1;
+			var new_frags_cnt = (int)(mass / Constants.MIN_BURST_MASS) - 1;
 
 			new_frags_cnt = Math.Min(new_frags_cnt, RestFragmentsCount(fragments->count, config));
 
-			double new_mass = mass / (new_frags_cnt + 1);
-			double new_radius = Mass2Radius(new_mass);
+			var new_mass = mass / (new_frags_cnt + 1);
+			var new_radius = Mass2Radius(new_mass);
 
 			var angle = Math.Atan2(ndy, ndx);
-			for (int I = 0; I < new_frags_cnt; I++)
+			for (var I = 0; I < new_frags_cnt; I++)
 			{
-				double burst_angle = angle - Constants.BURST_ANGLE_SPECTRUM / 2 + I * Constants.BURST_ANGLE_SPECTRUM / new_frags_cnt;
+				var burst_angle = angle - Constants.BURST_ANGLE_SPECTRUM / 2 + I * Constants.BURST_ANGLE_SPECTRUM / new_frags_cnt;
 				var new_fragment = new FastFragment
 				{
 					x = x,
@@ -546,7 +560,7 @@ namespace Game.Sim.Types
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void BurstOn(FastVirus* virus, Config config)
 		{
-			double dist = Distance(virus);
+			var dist = Distance(virus);
 			double dy = y - virus->point.y, dx = x - virus->point.x;
 			
 			if (dist > 0)
@@ -560,7 +574,7 @@ namespace Game.Sim.Types
 				ndy = 0;
 			}
 			
-			double max_speed = config.SPEED_FACTOR / Math.Sqrt(mass);
+			var max_speed = config.SPEED_FACTOR / Math.Sqrt(mass);
 			if (speed < max_speed)
 				speed = max_speed;
 
@@ -570,8 +584,8 @@ namespace Game.Sim.Types
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public FastEjection EjectNow(int player)
 		{
-			double ex = x + ndx * (radius + 1);
-			double ey = y + ndy * (radius + 1);
+			var ex = x + ndx * (radius + 1);
+			var ey = y + ndy * (radius + 1);
 
 			var new_eject = new FastEjection
 			{

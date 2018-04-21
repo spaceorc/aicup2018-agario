@@ -20,22 +20,23 @@ namespace Experiments
 {
 	internal unsafe class Program
 	{
-		public static void Main121212()
+		public static void Main()
 		{
 			Logger.enableFile = false;
 			Logger.enableConsole = true;
 			Logger.minLevel = Logger.Level.Info;
 
-			var dump = "D:\\Downloads\\173530_dump.log";
+			const string dump = "D:\\Downloads\\185418_dump.log";
+			const int turn = 3647;
+			const int turns = 2;
 			var lines = File.ReadAllLines(dump);
 
 			var config = JsonConvert.DeserializeObject<Config>(lines[0]);
 
-
 			{
-				var inputs = lines.SkipWhile(l => l != "T" + 1755).ToList();
+				var inputs = lines.SkipWhile(l => l != "T" + turn).ToList();
 				var turnInputs = new List<TurnInput>();
-				for (int k = 0; k < 20; k++)
+				for (int k = 0; k < turns; k++)
 				{
 					turnInputs.Add(JsonConvert.DeserializeObject<TurnInput>(inputs[k * 4 + 1]));
 				}
@@ -43,17 +44,31 @@ namespace Experiments
 				var ai = new SimulationAi(config, new FixedEvaluation(config, EvaluationArgs.CreateFixed()), 7, true,
 					new SimpleAi(config));
 
-				var global = new FastGlobal();
-				global.checkpoints.Add(0, 0);
+				var output = JsonConvert.DeserializeObject<TurnOutput>(inputs[2]).Debug.Split(new[]{';'}, 4);
 				
+				var checkpoints = output[3].Substring(" cp: ".Length);
+				var nextCheckpoint = int.Parse(output[2].Substring(" next: ".Length));
+
+				var global = new FastGlobal();
+				foreach (var cps in checkpoints.Split(';'))
+				{
+					var cp = cps.Split(',');
+					global.checkpoints.Add(double.Parse(cp[0]), double.Parse(cp[1]));
+				}
+
 				var simState = new State(config, true);
 				foreach (var turnInput in turnInputs)
 				{
 					simState.Apply(turnInput);
-					var state = new Simulator(simState, 0);
-					var direct = ai.GetDirect(&global, &state, 0, new TimeManager(config));
-					Console.Out.WriteLine(direct);
 				}
+
+				var state = new Simulator(simState, nextCheckpoint);
+				var timeManager = new TimeManager(config);
+				timeManager.TickStarted();
+				var direct = ai.GetDirect(&global, &state, 0, timeManager);
+				timeManager.TickFinished();
+				Console.Out.WriteLine(timeManager.Elapsed);
+				Console.Out.WriteLine(direct);
 			}
 		}
 
@@ -232,7 +247,7 @@ namespace Experiments
 		}
 
 		// brutal tester
-		public static void Main()
+		public static void Main_no()
 		{
 			Logger.enableConsole = false;
 			Logger.enableFile = false;

@@ -35,17 +35,20 @@ namespace Game.Ai
 		{
 			if (timeManager.BeStupid)
 				return simpleAi.GetDirect(global, state, player, timeManager);
-			var targets = GetPossibleTargets(global, state, player);
+			var targets = stackalloc FastPoint[16 * 12];
+			var targetsCount = 0;
+			GetPossibleTargets(global, state, player, targets, ref targetsCount);
 			var fragments = &state->fragments0 + player;
-			var frag = (FastFragment*) fragments->data;
+			var frag = (FastFragment*)fragments->data;
 			var directs = new FastDirect.List();
 			var bestScore = double.NegativeInfinity;
 			var bestDirect = new FastDirect();
 			for (var f = 0; f < fragments->count; f++, frag++)
 			{
-				foreach (var target in targets)
+				for (var t = 0; t < targetsCount; ++t)
 				{
-					for(int split = 0; split <= (useSplit ? 1 : 0); ++split)
+					var target = targets[t];
+					for (int split = 0; split <= (useSplit ? 1 : 0); ++split)
 					{
 						var clone = *state;
 						var direct = new FastDirect();
@@ -90,28 +93,42 @@ namespace Game.Ai
 			return bestDirect;
 		}
 
-		private static List<FastPoint> GetPossibleTargets(FastGlobal* global, Simulator* state, int player)
+		private static void GetPossibleTargets(FastGlobal* global, Simulator* state, int player, FastPoint* targets, ref int targetsCount)
 		{
-			var result = new List<FastPoint>();
-
 			if (player == 0)
 			{
 				var checkpoint = (FastPoint*)global->checkpoints.data;
 				for (var f = 0; f < global->checkpoints.count; f++, checkpoint++)
-					result.Add(*checkpoint);
+				{
+					*targets = *checkpoint;
+					targets++;
+					targetsCount++;
+				}
 			}
 
-			var food = (FastPoint*) state->foods.data;
+			var food = (FastPoint*)state->foods.data;
 			for (var f = 0; f < state->foods.count; f++, food++)
-				result.Add(*food);
+			{
+				*targets = *food;
+				targets++;
+				targetsCount++;
+			}
 
-			var virus = (FastVirus*) state->viruses.data;
+			var virus = (FastVirus*)state->viruses.data;
 			for (var f = 0; f < state->viruses.count; f++, virus++)
-				result.Add(*(FastPoint*) &virus->point);
+			{
+				*targets = *(FastPoint*)&virus->point;
+				targets++;
+				targetsCount++;
+			}
 
-			var eject = (FastEjection*) state->ejections.data;
+			var eject = (FastEjection*)state->ejections.data;
 			for (var f = 0; f < state->ejections.count; f++, eject++)
-				result.Add(*(FastPoint*) &eject->point);
+			{
+				*targets = *(FastPoint*)&eject->point;
+				targets++;
+				targetsCount++;
+			}
 
 			var fragments = &state->fragments0;
 			for (var p = 0; p < 4; p++, fragments++)
@@ -121,15 +138,17 @@ namespace Game.Ai
 				var frag = (FastFragment*)fragments->data;
 				for (var f = 0; f < fragments->count; f++, frag++)
 				{
-					var point = *(FastPoint*) frag;
-					result.Add(point);
+					var point = *(FastPoint*)frag;
+					*targets = point;
+					targets++;
+					targetsCount++;
 					point.x += frag->ndx;
 					point.y += frag->ndy;
-					result.Add(point);
+					*targets = point;
+					targets++;
+					targetsCount++;
 				}
 			}
-
-			return result;
 		}
 	}
 }
