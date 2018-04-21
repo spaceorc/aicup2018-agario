@@ -11,12 +11,13 @@ namespace Game
 		public long timeElapsed;
 		public long ticksPassed;
 		public long millisPerTick;
+		private bool stupidMode;
 
 		public TimeManager(Config config)
 		{
 			totalTime = config.GAME_TICKS * Settings.MILLIS_PER_TICK;
 			totalTicks = config.GAME_TICKS;
-			millisPerTick = Settings.MILLIS_PER_TICK - 3;
+			millisPerTick = Settings.MILLIS_PER_TICK;
 		}
 
 		public void TickStarted()
@@ -32,10 +33,14 @@ namespace Game
 			millisPerTick = totalTicks == ticksPassed ? 0 : (totalTime - timeElapsed) / (totalTicks - ticksPassed);
 			if (millisPerTick > Settings.MAX_MILLIS_PER_TICK)
 				millisPerTick = Settings.MAX_MILLIS_PER_TICK;
+			else if (!stupidMode && millisPerTick <= Settings.BE_STUPID_MILLIS_PER_TICK)
+				stupidMode = true;
+			else if (stupidMode && millisPerTick >= Settings.MILLIS_PER_TICK)
+				stupidMode = false;
 		}
 
 		public bool IsExpired => Elapsed >= millisPerTick;
-		public bool BeStupid => millisPerTick <= Settings.BE_STUPID_MILLIS_PER_TICK;
+		public bool BeStupid => stupidMode;
 		public bool BeSmart => millisPerTick >= Settings.BE_SMART_MILLIS_PER_TICK;
 		public bool IsExpiredGlobal => timeElapsed > totalTime;
 		public long Elapsed => stopwatch.ElapsedMilliseconds + 3;
