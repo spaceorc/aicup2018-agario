@@ -46,7 +46,7 @@ namespace Game.Strategies
 
 		public static void RegisterAi(string name, Func<Config, IAi> createAi)
 		{
-			StrategiesRegistry.Register(name, c => new Strategy(c, createAi(c), false));
+			//StrategiesRegistry.Register(name, c => new Strategy(c, createAi(c), false));
 			StrategiesRegistry.Register(name + "_noFoodStuck", c => new Strategy(c, createAi(c), true));
 		}
 

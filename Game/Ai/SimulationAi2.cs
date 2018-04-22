@@ -1,12 +1,11 @@
-﻿using System.Collections.Generic;
-using Game.Protocol;
+﻿using Game.Protocol;
 using Game.Sim;
 using Game.Sim.Types;
 using Game.Strategies;
 
 namespace Game.Ai
 {
-	public unsafe class SimulationAi : IAi
+	public unsafe class SimulationAi2 : IAi
 	{
 		private readonly Config config;
 		private readonly IEvaluation evaluation;
@@ -14,7 +13,7 @@ namespace Game.Ai
 		private readonly bool useSplit;
 		private readonly IAi simpleAi;
 
-		public SimulationAi(Config config, IEvaluation evaluation, int depth, bool useSplit, IAi simpleAi)
+		public SimulationAi2(Config config, IEvaluation evaluation, int depth, bool useSplit, IAi simpleAi)
 		{
 			this.config = config;
 			this.evaluation = evaluation;
@@ -25,10 +24,10 @@ namespace Game.Ai
 
 		public static void Register()
 		{
-			//Strategy.RegisterAi("sim_5_split", c => new SimulationAi(c, new Evaluation(c, EvaluationArgs.CreateDefault()), 5, true, new SimpleAi(c)));
-			//Strategy.RegisterAi("sim_7_split", c => new SimulationAi(c, new Evaluation(c, EvaluationArgs.CreateDefault()), 7, true, new SimpleAi(c)));
-			Strategy.RegisterAi("sim_5_split_fixed", c => new SimulationAi(c, new FixedEvaluation(c, EvaluationArgs.CreateFixed()), 5, true, new SimpleAi(c)));
-			Strategy.RegisterAi("sim_7_split_fixed", c => new SimulationAi(c, new FixedEvaluation(c, EvaluationArgs.CreateFixed()), 7, true, new SimpleAi(c)));
+//			Strategy.RegisterAi("sim2_5_split", c => new SimulationAi2(c, new Evaluation(c, EvaluationArgs.CreateDefault()), 5, true, new SimpleAi(c)));
+//			Strategy.RegisterAi("sim2_7_split", c => new SimulationAi2(c, new Evaluation(c, EvaluationArgs.CreateDefault()), 7, true, new SimpleAi(c)));
+			Strategy.RegisterAi("sim2_5_split_fixed", c => new SimulationAi2(c, new FixedEvaluation(c, EvaluationArgs.CreateFixed()), 5, true, new SimpleAi(c)));
+			Strategy.RegisterAi("sim2_7_split_fixed", c => new SimulationAi2(c, new FixedEvaluation(c, EvaluationArgs.CreateFixed()), 7, true, new SimpleAi(c)));
 		}
 
 		public FastDirect GetDirect(FastGlobal* global, Simulator* state, int player, TimeManager timeManager)
@@ -62,7 +61,7 @@ namespace Game.Ai
 									var factor = config.INERTION_FACTOR / frag->mass - 1;
 									var nx = target.x + frag->speed * frag->ndx * factor;
 									var ny = target.y + frag->speed * frag->ndy * factor;
-									var nextDirect = new FastDirect(nx, ny, split == 1);
+									var nextDirect = new FastDirect(nx, ny, i == 0 && split == 1);
 									if (i == 0)
 										direct = nextDirect;
 									directs.Add(nextDirect);
@@ -142,8 +141,8 @@ namespace Game.Ai
 					*targets = point;
 					targets++;
 					targetsCount++;
-					point.x += frag->ndx;
-					point.y += frag->ndy;
+					point.y += frag->ndy * frag->speed;
+					point.x += frag->ndx * frag->speed;
 					*targets = point;
 					targets++;
 					targetsCount++;

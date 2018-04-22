@@ -11,7 +11,7 @@ namespace Game.Sim.Types
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct FastFragment
 	{
-		public const int size = sizeof(double) * 7 + sizeof(int) * 2;
+		public const int size = sizeof(double) * 7 + sizeof(int) * 4;
 
 		static FastFragment()
 		{
@@ -28,6 +28,7 @@ namespace Game.Sim.Types
 		public double ndy;
 		public int fuse_timer;
 		public int isFast;
+		public int fragmentId;
 		private const double RADIUS_EAT_FACTOR = 2 * Constants.DIAM_EAT_FACTOR - 1;
 
 		public FastFragment(Player player) : this()

@@ -10,6 +10,6 @@
 		public const int MAX_MILLIS_PER_TICK = 4000;
 		public const int BE_STUPID_MILLIS_PER_TICK = 10;
 		public const int BE_SMART_MILLIS_PER_TICK = 40;
-		public const string DefaultStrategy = "sim_7_split_fixed_noFoodStuck";
+		public const string DefaultStrategy = "fsim_7_split_fixed_noFoodStuck";
 	}
 }

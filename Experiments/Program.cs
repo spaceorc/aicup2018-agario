@@ -20,7 +20,7 @@ namespace Experiments
 {
 	internal unsafe class Program
 	{
-		public static void Main()
+		public static void Main_834756()
 		{
 			Logger.enableFile = false;
 			Logger.enableConsole = true;
@@ -247,7 +247,7 @@ namespace Experiments
 		}
 
 		// brutal tester
-		public static void Main_no()
+		public static void Main()
 		{
 			Logger.enableConsole = false;
 			Logger.enableFile = false;
